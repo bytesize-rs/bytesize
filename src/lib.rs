@@ -511,4 +511,14 @@ mod tests {
         let s: S = toml::from_str(r#"x = "9223372036854775807""#).unwrap();
         assert_eq!(s.x, "9223372036854775807".parse::<ByteSize>().unwrap());
     }
+
+    #[test]
+    #[cfg(feature = "serde")]
+    fn test_serde_json() {
+        let json = serde_json::to_string(&ByteSize::mib(1)).unwrap();
+        assert_eq!(json, "\"1.0 MiB\"");
+
+        let deserialized: ByteSize = serde_json::from_str(&json).unwrap();
+        assert_eq!(deserialized.0, 1048576);
+    }
 }
