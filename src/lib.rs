@@ -39,7 +39,7 @@ use serde::{de, Deserialize, Deserializer, Serialize, Serializer};
 use std::convert::TryFrom;
 
 use std::fmt::{self, Debug, Display, Formatter};
-use std::ops::{Add, AddAssign, Mul, MulAssign};
+use std::ops::{Add, AddAssign, Mul, MulAssign, Sub, SubAssign};
 
 /// byte size for 1 byte
 pub const B: u64 = 1;
@@ -284,6 +284,43 @@ where
     }
 }
 
+impl Sub<ByteSize> for ByteSize {
+    type Output = ByteSize;
+
+    #[inline(always)]
+    fn sub(self, rhs: ByteSize) -> ByteSize {
+        ByteSize(self.0 - rhs.0)
+    }
+}
+
+impl SubAssign<ByteSize> for ByteSize {
+    #[inline(always)]
+    fn sub_assign(&mut self, rhs: ByteSize) {
+        self.0 -= rhs.0
+    }
+}
+
+impl<T> Sub<T> for ByteSize
+where
+    T: Into<u64>,
+{
+    type Output = ByteSize;
+    #[inline(always)]
+    fn sub(self, rhs: T) -> ByteSize {
+        ByteSize(self.0 - (rhs.into()))
+    }
+}
+
+impl<T> SubAssign<T> for ByteSize
+where
+    T: Into<u64>,
+{
+    #[inline(always)]
+    fn sub_assign(&mut self, rhs: T) {
+        self.0 -= rhs.into();
+    }
+}
+
 impl<T> Mul<T> for ByteSize
 where
     T: Into<u64>,
@@ -380,6 +417,8 @@ mod tests {
 
         assert_eq!((x + y).as_u64(), 1_100_000u64);
 
+        assert_eq!((x - y).as_u64(), 900_000u64);
+
         assert_eq!((x + (100 * 1000) as u64).as_u64(), 1_100_000);
 
         assert_eq!((x * 2u64).as_u64(), 2_000_000);
@@ -402,6 +441,14 @@ mod tests {
         assert_eq!((x + KB as u16).as_u64(), 1_001_000);
 
         assert_eq!((x + B as u8).as_u64(), 1_000_001);
+
+        assert_eq!((x - MB as u64).as_u64(), 0);
+
+        assert_eq!((x - MB as u32).as_u64(), 0);
+
+        assert_eq!((x - KB as u32).as_u64(), 999_000);
+
+        assert_eq!((x - B as u32).as_u64(), 999_999);
 
         x += MB as u64;
         x += MB as u32;
