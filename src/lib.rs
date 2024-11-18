@@ -465,4 +465,14 @@ mod tests {
     fn test_to_string() {
         assert_to_string("609.0 PB", ByteSize::pb(609), true);
     }
+
+    #[test]
+    #[cfg(feature = "serde")]
+    fn test_serde_json() {
+        let json = serde_json::to_string(&ByteSize::mib(1)).unwrap();
+        assert_eq!(json, "\"1.0 MiB\"");
+
+        let deserialized: ByteSize = serde_json::from_str(&json).unwrap();
+        assert_eq!(deserialized.0, 1048576);
+    }
 }
