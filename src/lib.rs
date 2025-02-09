@@ -3,7 +3,7 @@
 //!
 //! ## Example
 //!
-//! ```ignore
+//! ```no_run
 //! extern crate bytesize;
 //!
 //! use bytesize::ByteSize;
@@ -14,17 +14,15 @@
 //!
 //!   let plus = x + y;
 //!   print!("{} bytes", plus.as_u64());
-//!
-//!   let minus = ByteSize::tb(100) - ByteSize::gb(4);
-//!   print!("{} bytes", minus.as_u64());
 //! }
 //! ```
 //!
 //! It also provides its human readable string as follows:
 //!
-//! ```ignore=
-//!  assert_eq!("482 GiB".to_string(), ByteSize::gb(518).to_string(true));
-//!  assert_eq!("518 GB".to_string(), ByteSize::gb(518).to_string(false));
+//! ```no_run
+//! # use bytesize::ByteSize;
+//! assert_eq!("482 GiB".to_string(), ByteSize::gb(518).to_string());
+//! assert_eq!("518 GB".to_string(), ByteSize::gb(518).to_string());
 //! ```
 
 mod parse;
@@ -208,7 +206,7 @@ pub fn to_string(bytes: u64, si_prefix: bool) -> String {
 }
 
 impl Display for ByteSize {
-    fn fmt(&self, f: &mut Formatter) ->fmt::Result {
+    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
         f.pad(&to_string(self.0, false))
     }
 }
@@ -261,7 +259,9 @@ impl AddAssign<ByteSize> for ByteSize {
 }
 
 impl<T> Add<T> for ByteSize
-    where T: Into<u64> {
+where
+    T: Into<u64>,
+{
     type Output = ByteSize;
     #[inline(always)]
     fn add(self, rhs: T) -> ByteSize {
@@ -270,7 +270,9 @@ impl<T> Add<T> for ByteSize
 }
 
 impl<T> AddAssign<T> for ByteSize
-    where T: Into<u64> {
+where
+    T: Into<u64>,
+{
     #[inline(always)]
     fn add_assign(&mut self, rhs: T) {
         self.0 += rhs.into() as u64;
@@ -278,7 +280,9 @@ impl<T> AddAssign<T> for ByteSize
 }
 
 impl<T> Mul<T> for ByteSize
-    where T: Into<u64> {
+where
+    T: Into<u64>,
+{
     type Output = ByteSize;
     #[inline(always)]
     fn mul(self, rhs: T) -> ByteSize {
@@ -287,7 +291,9 @@ impl<T> Mul<T> for ByteSize
 }
 
 impl<T> MulAssign<T> for ByteSize
-    where T: Into<u64> {
+where
+    T: Into<u64>,
+{
     #[inline(always)]
     fn mul_assign(&mut self, rhs: T) {
         self.0 *= rhs.into() as u64;
