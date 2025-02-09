@@ -10,9 +10,7 @@ impl std::str::FromStr for ByteSize {
         let number = take_while(value, |c| c.is_ascii_digit() || c == '.');
         match number.parse::<f64>() {
             Ok(v) => {
-                let suffix = skip_while(value, |c| {
-                    c.is_whitespace() || c.is_ascii_digit() || c == '.'
-                });
+                let suffix = skip_while(value, char::is_whitespace);
                 match suffix.parse::<Unit>() {
                     Ok(u) => Ok(Self((v * u) as u64)),
                     Err(error) => Err(format!(
@@ -220,6 +218,9 @@ mod tests {
 
         assert!(parse("").is_err());
         assert!(parse("a124GB").is_err());
+        assert!(parse("1.3 42.0 B").is_err());
+        assert!(parse("1.3 ... B").is_err());
+        assert!(parse("1 000 B").is_err());
     }
 
     #[test]
