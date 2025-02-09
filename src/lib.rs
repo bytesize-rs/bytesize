@@ -28,15 +28,8 @@
 //! ```
 
 mod parse;
-
-#[cfg(feature = "arbitrary")]
-extern crate arbitrary;
 #[cfg(feature = "serde")]
-extern crate serde;
-#[cfg(feature = "serde")]
-use serde::{de, Deserialize, Deserializer, Serialize, Serializer};
-#[cfg(feature = "serde")]
-use std::convert::TryFrom;
+mod serde;
 
 use std::fmt::{self, Debug, Display, Formatter};
 use std::ops::{Add, AddAssign, Mul, MulAssign, Sub, SubAssign};
@@ -342,70 +335,6 @@ where
     }
 }
 
-#[cfg(feature = "serde")]
-impl<'de> Deserialize<'de> for ByteSize {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-    where
-        D: Deserializer<'de>,
-    {
-        struct ByteSizeVisitor;
-
-        impl de::Visitor<'_> for ByteSizeVisitor {
-            type Value = ByteSize;
-
-            fn expecting(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
-                formatter.write_str("an integer or string")
-            }
-
-            fn visit_i64<E: de::Error>(self, value: i64) -> Result<Self::Value, E> {
-                if let Ok(val) = u64::try_from(value) {
-                    Ok(ByteSize(val))
-                } else {
-                    Err(E::invalid_value(
-                        de::Unexpected::Signed(value),
-                        &"integer overflow",
-                    ))
-                }
-            }
-
-            fn visit_u64<E: de::Error>(self, value: u64) -> Result<Self::Value, E> {
-                Ok(ByteSize(value))
-            }
-
-            fn visit_str<E: de::Error>(self, value: &str) -> Result<Self::Value, E> {
-                if let Ok(val) = value.parse() {
-                    Ok(val)
-                } else {
-                    Err(E::invalid_value(
-                        de::Unexpected::Str(value),
-                        &"parsable string",
-                    ))
-                }
-            }
-        }
-
-        if deserializer.is_human_readable() {
-            deserializer.deserialize_any(ByteSizeVisitor)
-        } else {
-            deserializer.deserialize_u64(ByteSizeVisitor)
-        }
-    }
-}
-
-#[cfg(feature = "serde")]
-impl Serialize for ByteSize {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: Serializer,
-    {
-        if serializer.is_human_readable() {
-            <str>::serialize(self.to_string().as_str(), serializer)
-        } else {
-            self.0.serialize(serializer)
-        }
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -536,37 +465,5 @@ mod tests {
     #[test]
     fn test_to_string() {
         assert_to_string("609.0 PB", ByteSize::pb(609), false);
-    }
-
-    #[cfg(feature = "serde")]
-    #[test]
-    fn test_serde() {
-        #[derive(Serialize, Deserialize)]
-        struct S {
-            x: ByteSize,
-        }
-
-        let s: S = serde_json::from_str(r#"{ "x": "5 B" }"#).unwrap();
-        assert_eq!(s.x, ByteSize(5));
-
-        let s: S = serde_json::from_str(r#"{ "x": 1048576 }"#).unwrap();
-        assert_eq!(s.x, "1 MiB".parse::<ByteSize>().unwrap());
-
-        let s: S = toml::from_str(r#"x = "2.5 MiB""#).unwrap();
-        assert_eq!(s.x, "2.5 MiB".parse::<ByteSize>().unwrap());
-
-        // i64 MAX
-        let s: S = toml::from_str(r#"x = "9223372036854775807""#).unwrap();
-        assert_eq!(s.x, "9223372036854775807".parse::<ByteSize>().unwrap());
-    }
-
-    #[test]
-    #[cfg(feature = "serde")]
-    fn test_serde_json() {
-        let json = serde_json::to_string(&ByteSize::mib(1)).unwrap();
-        assert_eq!(json, "\"1.0 MiB\"");
-
-        let deserialized: ByteSize = serde_json::from_str(&json).unwrap();
-        assert_eq!(deserialized.0, 1048576);
     }
 }
