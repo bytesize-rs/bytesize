@@ -5,10 +5,15 @@ version = "1.3.0"
 authors = ["Hyunsik Choi <hyunsik.choi@gmail.com>", "MrCroxx <mrcroxx@outlook.com>"]
 keywords = ["byte", "byte-size", "utility", "human-readable", "format"]
 categories = ["development-tools", "filesystem"]
-repository = "https://github.com/hyunsik/bytesize"
+repository = "https://github.com/bytesize-rs/bytesize"
 license = "Apache-2.0"
 edition = "2021"
 rust-version = "1.65"
+
+[features]
+default = []
+arbitrary = ["dep:arbitrary"]
+serde = ["dep:serde"]
 
 [dependencies]
 arbitrary = { version = "1", features = ["derive"], optional = true }
@@ -18,8 +23,3 @@ serde = { version = "1", optional = true }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 toml = "0.8"
-
-[features]
-arbitrary = ["dep:arbitrary"]
-default = []
-serde = ["dep:serde"]
