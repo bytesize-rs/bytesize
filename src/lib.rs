@@ -348,9 +348,9 @@ impl<'de> Deserialize<'de> for ByteSize {
     where
         D: Deserializer<'de>,
     {
-        struct ByteSizeVistor;
+        struct ByteSizeVisitor;
 
-        impl<'de> de::Visitor<'de> for ByteSizeVistor {
+        impl de::Visitor<'_> for ByteSizeVisitor {
             type Value = ByteSize;
 
             fn expecting(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
@@ -385,9 +385,9 @@ impl<'de> Deserialize<'de> for ByteSize {
         }
 
         if deserializer.is_human_readable() {
-            deserializer.deserialize_any(ByteSizeVistor)
+            deserializer.deserialize_any(ByteSizeVisitor)
         } else {
-            deserializer.deserialize_u64(ByteSizeVistor)
+            deserializer.deserialize_u64(ByteSizeVisitor)
         }
     }
 }
