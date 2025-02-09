@@ -336,6 +336,37 @@ where
 }
 
 #[cfg(test)]
+mod property_tests {
+    use super::*;
+
+    impl quickcheck::Arbitrary for ByteSize {
+        fn arbitrary(g: &mut quickcheck::Gen) -> Self {
+            Self(u64::arbitrary(g))
+        }
+    }
+
+    quickcheck::quickcheck! {
+        fn parsing_never_panics(size: String) -> bool {
+            let _ = size.parse::<ByteSize>();
+            true
+        }
+
+        fn to_string_never_blank(size: ByteSize) -> bool {
+            !size.to_string().is_empty()
+        }
+
+        fn to_string_never_large(size: ByteSize) -> bool {
+            size.to_string().len() < 10
+        }
+
+        // // currently fails on input like "14.0 EiB"
+        // fn string_round_trip(size: ByteSize) -> bool {
+        //     size.to_string().parse::<ByteSize>().unwrap() == size
+        // }
+    }
+}
+
+#[cfg(test)]
 mod tests {
     use super::*;
 
