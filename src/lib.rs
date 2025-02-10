@@ -456,38 +456,38 @@ mod tests {
     }
 
     #[track_caller]
-    fn assert_to_string(expected: &str, b: ByteSize, si: bool) {
-        assert_eq!(expected.to_string(), b.to_string_as(si));
+    fn assert_to_string(expected: &str, b: ByteSize, format: Format) {
+        assert_eq!(expected.to_string(), to_string_format(b.0, format));
     }
 
     #[test]
     fn test_to_string_as() {
-        assert_to_string("215 B", ByteSize::b(215), false);
-        assert_to_string("215 B", ByteSize::b(215), true);
+        assert_to_string("215 B", ByteSize::b(215), Format::IEC);
+        assert_to_string("215 B", ByteSize::b(215), Format::SI);
 
-        assert_to_string("1.0 KiB", ByteSize::kib(1), false);
-        assert_to_string("1.0 kB", ByteSize::kib(1), true);
+        assert_to_string("1.0 KiB", ByteSize::kib(1), Format::IEC);
+        assert_to_string("1.0 kB", ByteSize::kib(1), Format::SI);
 
-        assert_to_string("293.9 KiB", ByteSize::kb(301), false);
-        assert_to_string("301.0 kB", ByteSize::kb(301), true);
+        assert_to_string("293.9 KiB", ByteSize::kb(301), Format::IEC);
+        assert_to_string("301.0 kB", ByteSize::kb(301), Format::SI);
 
-        assert_to_string("1024.0 KiB", ByteSize::mib(1), false);
-        assert_to_string("1.0 MB", ByteSize::mib(1), true);
+        assert_to_string("1024.0 KiB", ByteSize::mib(1), Format::IEC);
+        assert_to_string("1.0 MB", ByteSize::mib(1), Format::SI);
 
-        assert_to_string("1.9 GiB", ByteSize::mib(1907), false);
-        assert_to_string("2.0 GB", ByteSize::mib(1908), true);
+        assert_to_string("1.9 GiB", ByteSize::mib(1907), Format::IEC);
+        assert_to_string("2.0 GB", ByteSize::mib(1908), Format::SI);
 
-        assert_to_string("399.6 MiB", ByteSize::mb(419), false);
-        assert_to_string("419.0 MB", ByteSize::mb(419), true);
+        assert_to_string("399.6 MiB", ByteSize::mb(419), Format::IEC);
+        assert_to_string("419.0 MB", ByteSize::mb(419), Format::SI);
 
-        assert_to_string("482.4 GiB", ByteSize::gb(518), false);
-        assert_to_string("518.0 GB", ByteSize::gb(518), true);
+        assert_to_string("482.4 GiB", ByteSize::gb(518), Format::IEC);
+        assert_to_string("518.0 GB", ByteSize::gb(518), Format::SI);
 
-        assert_to_string("741.2 TiB", ByteSize::tb(815), false);
-        assert_to_string("815.0 TB", ByteSize::tb(815), true);
+        assert_to_string("741.2 TiB", ByteSize::tb(815), Format::IEC);
+        assert_to_string("815.0 TB", ByteSize::tb(815), Format::SI);
 
-        assert_to_string("540.9 PiB", ByteSize::pb(609), false);
-        assert_to_string("609.0 PB", ByteSize::pb(609), true);
+        assert_to_string("540.9 PiB", ByteSize::pb(609), Format::IEC);
+        assert_to_string("609.0 PB", ByteSize::pb(609), Format::SI);
     }
 
     #[test]
@@ -497,6 +497,6 @@ mod tests {
 
     #[test]
     fn test_to_string() {
-        assert_to_string("609.0 PB", ByteSize::pb(609), true);
+        assert_to_string("609.0 PB", ByteSize::pb(609), Format::SI);
     }
 }
