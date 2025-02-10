@@ -75,6 +75,13 @@ const LN_KIB: f64 = 6.931471806;
 /// `ln(1000) ~= 6.908`
 const LN_KB: f64 = 6.907755279;
 
+#[derive(Debug, Clone, Default)]
+pub enum Format {
+    #[default]
+    IEC,
+    SI,
+}
+
 pub fn kb<V: Into<u64>>(size: V) -> u64 {
     size.into() * KB
 }
@@ -187,17 +194,27 @@ impl ByteSize {
     }
 }
 
-pub fn to_string(bytes: u64, si_prefix: bool) -> String {
-    let unit = if si_prefix { KB } else { KIB };
-    let unit_base = if si_prefix { LN_KB } else { LN_KIB };
+pub fn to_string(bytes: u64, si_unit: bool) -> String {
+    to_string_format(bytes, if si_unit { Format::SI } else { Format::IEC })
+}
 
-    let unit_prefix = match si_prefix {
-        true => UNITS_SI.as_bytes(),
-        false => UNITS_IEC.as_bytes(),
+pub fn to_string_format(bytes: u64, format: Format) -> String {
+    let unit = match format {
+        Format::IEC => KIB,
+        Format::SI => KB,
     };
-    let unit_suffix = match si_prefix {
-        true => "B",
-        false => "iB",
+    let unit_base = match format {
+        Format::IEC => LN_KIB,
+        Format::SI => LN_KB,
+    };
+
+    let unit_prefix = match format {
+        Format::IEC => UNITS_IEC.as_bytes(),
+        Format::SI => UNITS_SI.as_bytes(),
+    };
+    let unit_suffix = match format {
+        Format::IEC => "iB",
+        Format::SI => "B",
     };
 
     if bytes < unit {
@@ -220,7 +237,7 @@ pub fn to_string(bytes: u64, si_prefix: bool) -> String {
 
 impl Display for ByteSize {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        f.pad(&to_string(self.0, false))
+        f.pad(&to_string_format(self.0, Format::IEC))
     }
 }
 
