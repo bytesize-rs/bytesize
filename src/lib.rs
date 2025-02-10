@@ -61,16 +61,19 @@ pub const PIB: u64 = 1_125_899_906_842_624;
 /// IEC (binary) units.
 ///
 /// See <https://en.wikipedia.org/wiki/Kilobyte>.
-static UNITS_IEC: &str = "KMGTPE";
+const UNITS_IEC: &str = "KMGTPE";
 
 /// SI (decimal) units.
 ///
 ///
 /// See <https://en.wikipedia.org/wiki/Kilobyte>.
-static UNITS_SI: &str = "kMGTPE";
+const UNITS_SI: &str = "kMGTPE";
 
-static LN_KIB: f64 = 6.931471806; // ln 1024
-static LN_KB: f64 = 6.907755279; // ln 1000
+/// `ln(1024) ~= 6.931`
+const LN_KIB: f64 = 6.931471806;
+
+/// `ln(1000) ~= 6.908`
+const LN_KB: f64 = 6.907755279;
 
 pub fn kb<V: Into<u64>>(size: V) -> u64 {
     size.into() * KB
