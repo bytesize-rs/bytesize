@@ -2,8 +2,8 @@
 
 ## Unreleased
 
-- Use SI format by default with `Display`.
-- Use "KiB" for SI unit.
+- Use IEC (binary) format by default with `Display`.
+- Use "kB" for SI unit.
 - Implement `Sub<ByteSize>` for `ByteSize`.
 - Implement `Sub<impl Into<u64>>` for `ByteSize`.
 - Implement `SubAssign<ByteSize>` for `ByteSize`.

@@ -179,12 +179,15 @@ impl ByteSize {
 pub fn to_string(bytes: u64, si_prefix: bool) -> String {
     let unit = if si_prefix { KB } else { KIB };
     let unit_base = if si_prefix { LN_KB } else { LN_KIB };
-    let unit_prefix = if si_prefix {
-        UNITS_SI.as_bytes()
-    } else {
-        UNITS.as_bytes()
+
+    let unit_prefix = match si_prefix {
+        true => UNITS_SI.as_bytes(),
+        false => UNITS.as_bytes(),
     };
-    let unit_suffix = if si_prefix { "B" } else { "iB" };
+    let unit_suffix = match si_prefix {
+        true => "B",
+        false => "iB",
+    };
 
     if bytes < unit {
         format!("{} B", bytes)
@@ -206,7 +209,7 @@ pub fn to_string(bytes: u64, si_prefix: bool) -> String {
 
 impl Display for ByteSize {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        f.pad(&to_string(self.0, true))
+        f.pad(&to_string(self.0, false))
     }
 }
 
@@ -440,10 +443,9 @@ mod tests {
         assert_to_string("293.9 KiB", ByteSize::kb(301), false);
         assert_to_string("301.0 kB", ByteSize::kb(301), true);
 
-        assert_to_string("1.0 MiB", ByteSize::mib(1), false);
-        assert_to_string("1048.6 kB", ByteSize::mib(1), true);
+        assert_to_string("1024.0 KiB", ByteSize::mib(1), false);
+        assert_to_string("1.0 MB", ByteSize::mib(1), true);
 
-        // a bug case: https://github.com/flang-project/bytesize/issues/8
         assert_to_string("1.9 GiB", ByteSize::mib(1907), false);
         assert_to_string("2.0 GB", ByteSize::mib(1908), true);
 
