@@ -25,6 +25,12 @@ fmt:
     # fd --hidden --type=file -e=md -e=yml --exec-batch prettier --write
     cargo +nightly fmt
 
+# Update READMEs from crate root documentation.
+[group("lint")]
+update-readme:
+    cargo rdme --force
+    npx -y prettier --write README.md
+
 # Lint workspace with Clippy.
 [group("lint")]
 clippy:
