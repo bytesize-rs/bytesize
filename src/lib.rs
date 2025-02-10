@@ -243,7 +243,7 @@ impl Display for ByteSize {
 
 impl Debug for ByteSize {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        write!(f, "{}", self)
+        <Self as Display>::fmt(self, f)
     }
 }
 

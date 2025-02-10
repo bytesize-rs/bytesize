@@ -236,8 +236,8 @@ mod tests {
 
         assert_eq!(parse(&format!("{}", parse("128GB"))), 128 * Unit::GigaByte);
         assert_eq!(
-            parse(&to_string_format(parse("128.000 GiB"), crate::Format::IEC,)),
-            128 * Unit::GibiByte
+            parse(&to_string_format(parse("128.000 GiB"), crate::Format::IEC)),
+            128 * Unit::GibiByte,
         );
     }
 }
