@@ -58,7 +58,15 @@ pub const TIB: u64 = 1_099_511_627_776;
 /// bytes size for 1 pebibyte
 pub const PIB: u64 = 1_125_899_906_842_624;
 
-static UNITS: &str = "KMGTPE";
+/// IEC (binary) units.
+///
+/// See <https://en.wikipedia.org/wiki/Kilobyte>.
+static UNITS_IEC: &str = "KMGTPE";
+
+/// SI (decimal) units.
+///
+///
+/// See <https://en.wikipedia.org/wiki/Kilobyte>.
 static UNITS_SI: &str = "kMGTPE";
 
 static LN_KIB: f64 = 6.931471806; // ln 1024
@@ -182,7 +190,7 @@ pub fn to_string(bytes: u64, si_prefix: bool) -> String {
 
     let unit_prefix = match si_prefix {
         true => UNITS_SI.as_bytes(),
-        false => UNITS.as_bytes(),
+        false => UNITS_IEC.as_bytes(),
     };
     let unit_suffix = match si_prefix {
         true => "B",
