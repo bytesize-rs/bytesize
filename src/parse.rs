@@ -70,19 +70,19 @@ enum Unit {
 impl Unit {
     fn factor(&self) -> u64 {
         match self {
-            Self::Byte => super::B,
-            // power of tens
-            Self::KiloByte => super::KB,
-            Self::MegaByte => super::MB,
-            Self::GigaByte => super::GB,
-            Self::TeraByte => super::TB,
-            Self::PetaByte => super::PB,
-            // power of twos
-            Self::KibiByte => super::KIB,
-            Self::MebiByte => super::MIB,
-            Self::GibiByte => super::GIB,
-            Self::TebiByte => super::TIB,
-            Self::PebiByte => super::PIB,
+            Self::Byte => 1,
+            // decimal units
+            Self::KiloByte => crate::KB,
+            Self::MegaByte => crate::MB,
+            Self::GigaByte => crate::GB,
+            Self::TeraByte => crate::TB,
+            Self::PetaByte => crate::PB,
+            // binary units
+            Self::KibiByte => crate::KIB,
+            Self::MebiByte => crate::MIB,
+            Self::GibiByte => crate::GIB,
+            Self::TebiByte => crate::TIB,
+            Self::PebiByte => crate::PIB,
         }
     }
 }

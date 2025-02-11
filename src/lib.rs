@@ -33,28 +33,26 @@ mod serde;
 use std::fmt::{self, Debug, Display, Formatter};
 use std::ops::{Add, AddAssign, Mul, MulAssign, Sub, SubAssign};
 
-/// byte size for 1 byte
-pub const B: u64 = 1;
-/// bytes size for 1 kilobyte
+/// Number of bytes in 1 kilobyte.
 pub const KB: u64 = 1_000;
-/// bytes size for 1 megabyte
+/// Number of bytes in 1 megabyte.
 pub const MB: u64 = 1_000_000;
-/// bytes size for 1 gigabyte
+/// Number of bytes in 1 gigabyte.
 pub const GB: u64 = 1_000_000_000;
-/// bytes size for 1 terabyte
+/// Number of bytes in 1 terabyte.
 pub const TB: u64 = 1_000_000_000_000;
-/// bytes size for 1 petabyte
+/// Number of bytes in 1 petabyte.
 pub const PB: u64 = 1_000_000_000_000_000;
 
-/// bytes size for 1 kibibyte
+/// Number of bytes in 1 kibibyte.
 pub const KIB: u64 = 1_024;
-/// bytes size for 1 mebibyte
+/// Number of bytes in 1 mebibyte.
 pub const MIB: u64 = 1_048_576;
-/// bytes size for 1 gibibyte
+/// Number of bytes in 1 gibibyte.
 pub const GIB: u64 = 1_073_741_824;
-/// bytes size for 1 tebibyte
+/// Number of bytes in 1 tebibyte.
 pub const TIB: u64 = 1_099_511_627_776;
-/// bytes size for 1 pebibyte
+/// Number of bytes in 1 pebibyte.
 pub const PIB: u64 = 1_125_899_906_842_624;
 
 /// IEC (binary) units.
@@ -416,20 +414,11 @@ mod tests {
         let mut x = ByteSize::mb(1);
 
         assert_eq!((x + MB as u64).as_u64(), 2_000_000);
-
         assert_eq!((x + MB as u32).as_u64(), 2_000_000);
-
         assert_eq!((x + KB as u16).as_u64(), 1_001_000);
-
-        assert_eq!((x + B as u8).as_u64(), 1_000_001);
-
         assert_eq!((x - MB as u64).as_u64(), 0);
-
         assert_eq!((x - MB as u32).as_u64(), 0);
-
         assert_eq!((x - KB as u32).as_u64(), 999_000);
-
-        assert_eq!((x - B as u32).as_u64(), 999_999);
 
         x += MB as u64;
         x += MB as u32;
