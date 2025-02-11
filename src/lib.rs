@@ -73,120 +73,151 @@ const LN_KIB: f64 = 6.931_471_805_599_453;
 /// `ln(1000) ~= 6.908`
 const LN_KB: f64 = 6.907_755_278_982_137;
 
+/// Formatting style.
 #[derive(Debug, Clone, Default)]
 pub enum Format {
+    /// IEC (binary) representation.
+    ///
+    /// E.g., "1.0 MiB"
     #[default]
     IEC,
+
+    /// SI (decimal) representation.
+    ///
+    /// E.g., "1.02 MB"
     SI,
 }
 
-pub fn kb<V: Into<u64>>(size: V) -> u64 {
+/// Converts a quantity of kilobytes to bytes.
+pub fn kb(size: impl Into<u64>) -> u64 {
     size.into() * KB
 }
 
+/// Converts a quantity of kibibytes to bytes.
 pub fn kib<V: Into<u64>>(size: V) -> u64 {
     size.into() * KIB
 }
 
+/// Converts a quantity of megabytes to bytes.
 pub fn mb<V: Into<u64>>(size: V) -> u64 {
     size.into() * MB
 }
 
+/// Converts a quantity of mebibytes to bytes.
 pub fn mib<V: Into<u64>>(size: V) -> u64 {
     size.into() * MIB
 }
 
+/// Converts a quantity of gigabytes to bytes.
 pub fn gb<V: Into<u64>>(size: V) -> u64 {
     size.into() * GB
 }
 
+/// Converts a quantity of gibibytes to bytes.
 pub fn gib<V: Into<u64>>(size: V) -> u64 {
     size.into() * GIB
 }
 
+/// Converts a quantity of terabytes to bytes.
 pub fn tb<V: Into<u64>>(size: V) -> u64 {
     size.into() * TB
 }
 
+/// Converts a quantity of tebibytes to bytes.
 pub fn tib<V: Into<u64>>(size: V) -> u64 {
     size.into() * TIB
 }
 
+/// Converts a quantity of petabytes to bytes.
 pub fn pb<V: Into<u64>>(size: V) -> u64 {
     size.into() * PB
 }
 
+/// Converts a quantity of pebibytes to bytes.
 pub fn pib<V: Into<u64>>(size: V) -> u64 {
     size.into() * PIB
 }
 
-/// Byte size representation
+/// Byte size representation.
 #[derive(Copy, Clone, PartialEq, PartialOrd, Eq, Ord, Hash, Default)]
 #[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
 pub struct ByteSize(pub u64);
 
 impl ByteSize {
+    /// Constructs a byte size wrapper from a quantity of bytes.
     #[inline(always)]
     pub const fn b(size: u64) -> ByteSize {
         ByteSize(size)
     }
 
+    /// Constructs a byte size wrapper from a quantity of kilobytes.
     #[inline(always)]
     pub const fn kb(size: u64) -> ByteSize {
         ByteSize(size * KB)
     }
 
+    /// Constructs a byte size wrapper from a quantity of kibibytes.
     #[inline(always)]
     pub const fn kib(size: u64) -> ByteSize {
         ByteSize(size * KIB)
     }
 
+    /// Constructs a byte size wrapper from a quantity of megabytes.
     #[inline(always)]
     pub const fn mb(size: u64) -> ByteSize {
         ByteSize(size * MB)
     }
 
+    /// Constructs a byte size wrapper from a quantity of mebibytes.
     #[inline(always)]
     pub const fn mib(size: u64) -> ByteSize {
         ByteSize(size * MIB)
     }
 
+    /// Constructs a byte size wrapper from a quantity of gigabytes.
     #[inline(always)]
     pub const fn gb(size: u64) -> ByteSize {
         ByteSize(size * GB)
     }
 
+    /// Constructs a byte size wrapper from a quantity of gibibytes.
     #[inline(always)]
     pub const fn gib(size: u64) -> ByteSize {
         ByteSize(size * GIB)
     }
 
+    /// Constructs a byte size wrapper from a quantity of terabytes.
     #[inline(always)]
     pub const fn tb(size: u64) -> ByteSize {
         ByteSize(size * TB)
     }
 
+    /// Constructs a byte size wrapper from a quantity of tebibytes.
     #[inline(always)]
     pub const fn tib(size: u64) -> ByteSize {
         ByteSize(size * TIB)
     }
 
+    /// Constructs a byte size wrapper from a quantity of petabytes.
     #[inline(always)]
     pub const fn pb(size: u64) -> ByteSize {
         ByteSize(size * PB)
     }
 
+    /// Constructs a byte size wrapper from a quantity of pebibytes.
     #[inline(always)]
     pub const fn pib(size: u64) -> ByteSize {
         ByteSize(size * PIB)
     }
 
+    /// Returns byte count.
     #[inline(always)]
     pub const fn as_u64(&self) -> u64 {
         self.0
     }
 }
 
+/// Constructs human-readable string representation of `bytes` with given `format` style.
 pub fn to_string_format(bytes: u64, format: Format) -> String {
     let unit = match format {
         Format::IEC => KIB,
