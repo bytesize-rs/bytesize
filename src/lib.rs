@@ -65,15 +65,14 @@ const UNITS_IEC: &str = "KMGTPE";
 
 /// SI (decimal) units.
 ///
-///
 /// See <https://en.wikipedia.org/wiki/Kilobyte>.
 const UNITS_SI: &str = "kMGTPE";
 
 /// `ln(1024) ~= 6.931`
-const LN_KIB: f64 = 6.931471806;
+const LN_KIB: f64 = 6.931_471_805_599_453;
 
 /// `ln(1000) ~= 6.908`
-const LN_KB: f64 = 6.907755279;
+const LN_KB: f64 = 6.907_755_278_982_137;
 
 #[derive(Debug, Clone, Default)]
 pub enum Format {
@@ -471,7 +470,7 @@ mod tests {
         assert_to_string("293.9 KiB", ByteSize::kb(301), Format::IEC);
         assert_to_string("301.0 kB", ByteSize::kb(301), Format::SI);
 
-        assert_to_string("1024.0 KiB", ByteSize::mib(1), Format::IEC);
+        assert_to_string("1.0 MiB", ByteSize::mib(1), Format::IEC);
         assert_to_string("1.0 MB", ByteSize::mib(1), Format::SI);
 
         assert_to_string("1.9 GiB", ByteSize::mib(1907), Format::IEC);

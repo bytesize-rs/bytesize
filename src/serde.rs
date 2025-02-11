@@ -94,7 +94,7 @@ mod tests {
     #[test]
     fn test_serde_json() {
         let json = serde_json::to_string(&ByteSize::mib(1)).unwrap();
-        assert_eq!(json, "\"1024.0 KiB\"");
+        assert_eq!(json, "\"1.0 MiB\"");
 
         let deserialized = serde_json::from_str::<ByteSize>(&json).unwrap();
         assert_eq!(deserialized.0, 1048576);
