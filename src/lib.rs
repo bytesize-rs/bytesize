@@ -23,8 +23,7 @@
 //! ```
 //! use bytesize::ByteSize;
 //!
-//! assert_eq!("482.4 GiB", ByteSize::gb(518).to_string_as(false));
-//! assert_eq!("518.0 GB", ByteSize::gb(518).to_string_as(true));
+//! assert_eq!("482.4 GiB", ByteSize::gb(518).to_string());
 //! ```
 
 mod parse;
@@ -186,15 +185,6 @@ impl ByteSize {
     pub const fn as_u64(&self) -> u64 {
         self.0
     }
-
-    #[inline(always)]
-    pub fn to_string_as(&self, si_unit: bool) -> String {
-        to_string(self.0, si_unit)
-    }
-}
-
-pub fn to_string(bytes: u64, si_unit: bool) -> String {
-    to_string_format(bytes, if si_unit { Format::SI } else { Format::IEC })
 }
 
 pub fn to_string_format(bytes: u64, format: Format) -> String {

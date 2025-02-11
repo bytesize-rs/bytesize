@@ -9,3 +9,5 @@
 - Implement `SubAssign<ByteSize>` for `ByteSize`.
 - Implement `SubAssign<impl Into<u64>>` for `ByteSize`.
 - Reject parsing non-unit characters after whitespace.
+- Remove `ByteSize::to_string_as()` method.
+- Remove top-level `to_string()` method.
