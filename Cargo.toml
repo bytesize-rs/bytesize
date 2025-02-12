@@ -30,4 +30,7 @@ serde_json = "1"
 toml = "0.8"
 
 [lints.rust]
-missing-docs = "warn"
+rust-2018-idioms = { level = "deny" }
+future-incompatible = { level = "deny" }
+nonstandard-style = { level = "deny" }
+missing-docs = { level = "warn" }

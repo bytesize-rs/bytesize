@@ -268,13 +268,13 @@ pub fn to_string_format(bytes: u64, format: Format) -> String {
 }
 
 impl Display for ByteSize {
-    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         f.pad(&to_string_format(self.0, Format::IEC))
     }
 }
 
 impl Debug for ByteSize {
-    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         <Self as Display>::fmt(self, f)
     }
 }
