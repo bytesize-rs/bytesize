@@ -24,8 +24,8 @@
 //! ```
 //! use bytesize::ByteSize;
 //!
-//! assert_eq!("482.4 GiB", ByteSize::gb(518).to_string_as(true));
-//! assert_eq!("518.0 GB", ByteSize::gb(518).to_string_as(false));
+//! assert_eq!("482.4 GiB", ByteSize::gb(518).to_string_as(false));
+//! assert_eq!("518.0 GB", ByteSize::gb(518).to_string_as(true));
 //! ```
 //!
 //! Arithmetic operations are supported.
@@ -71,10 +71,28 @@ pub const TIB: u64 = 1_099_511_627_776;
 /// bytes size for 1 pebibyte
 pub const PIB: u64 = 1_125_899_906_842_624;
 
-static UNITS: &str = "KMGTPE";
-static UNITS_SI: &str = "KMGTPE";
-static LN_KB: f64 = 6.931471806; // ln 1024
-static LN_KIB: f64 = 6.907755279; // ln 1000
+/// IEC (binary) units.
+///
+/// See <https://en.wikipedia.org/wiki/Kilobyte>.
+const UNITS_IEC: &str = "KMGTPE";
+
+/// SI (decimal) units.
+///
+/// See <https://en.wikipedia.org/wiki/Kilobyte>.
+const UNITS_SI: &str = "kMGTPE";
+
+/// `ln(1024) ~= 6.931`
+const LN_KIB: f64 = 6.931_471_805_599_453;
+
+/// `ln(1000) ~= 6.908`
+const LN_KB: f64 = 6.907_755_278_982_137;
+
+#[derive(Debug, Clone, Default)]
+pub enum Format {
+    #[default]
+    IEC,
+    SI,
+}
 
 pub fn kb<V: Into<u64>>(size: V) -> u64 {
     size.into() * KB
@@ -188,15 +206,28 @@ impl ByteSize {
     }
 }
 
-pub fn to_string(bytes: u64, si_prefix: bool) -> String {
-    let unit = if si_prefix { KIB } else { KB };
-    let unit_base = if si_prefix { LN_KIB } else { LN_KB };
-    let unit_prefix = if si_prefix {
-        UNITS_SI.as_bytes()
-    } else {
-        UNITS.as_bytes()
+pub fn to_string(bytes: u64, si_unit: bool) -> String {
+    to_string_format(bytes, if si_unit { Format::SI } else { Format::IEC })
+}
+
+pub fn to_string_format(bytes: u64, format: Format) -> String {
+    let unit = match format {
+        Format::IEC => KIB,
+        Format::SI => KB,
     };
-    let unit_suffix = if si_prefix { "iB" } else { "B" };
+    let unit_base = match format {
+        Format::IEC => LN_KIB,
+        Format::SI => LN_KB,
+    };
+
+    let unit_prefix = match format {
+        Format::IEC => UNITS_IEC.as_bytes(),
+        Format::SI => UNITS_SI.as_bytes(),
+    };
+    let unit_suffix = match format {
+        Format::IEC => "iB",
+        Format::SI => "B",
+    };
 
     if bytes < unit {
         format!("{} B", bytes)
@@ -218,13 +249,13 @@ pub fn to_string(bytes: u64, si_prefix: bool) -> String {
 
 impl Display for ByteSize {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        f.pad(&to_string(self.0, true))
+        f.pad(&to_string_format(self.0, Format::IEC))
     }
 }
 
 impl Debug for ByteSize {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        write!(f, "{}", self)
+        <Self as Display>::fmt(self, f)
     }
 }
 
@@ -408,6 +439,7 @@ mod tests {
         assert!(ByteSize::b(0) < ByteSize::tib(1));
     }
 
+    #[track_caller]
     fn assert_display(expected: &str, b: ByteSize) {
         assert_eq!(expected, format!("{}", b));
     }
@@ -435,39 +467,39 @@ mod tests {
         assert_eq!("|--357 B---|", format!("|{:-^10}|", ByteSize(357)));
     }
 
-    fn assert_to_string(expected: &str, b: ByteSize, si: bool) {
-        assert_eq!(expected.to_string(), b.to_string_as(si));
+    #[track_caller]
+    fn assert_to_string(expected: &str, b: ByteSize, format: Format) {
+        assert_eq!(expected.to_string(), to_string_format(b.0, format));
     }
 
     #[test]
     fn test_to_string_as() {
-        assert_to_string("215 B", ByteSize::b(215), true);
-        assert_to_string("215 B", ByteSize::b(215), false);
+        assert_to_string("215 B", ByteSize::b(215), Format::IEC);
+        assert_to_string("215 B", ByteSize::b(215), Format::SI);
 
-        assert_to_string("1.0 KiB", ByteSize::kib(1), true);
-        assert_to_string("1.0 KB", ByteSize::kib(1), false);
+        assert_to_string("1.0 KiB", ByteSize::kib(1), Format::IEC);
+        assert_to_string("1.0 kB", ByteSize::kib(1), Format::SI);
 
-        assert_to_string("293.9 KiB", ByteSize::kb(301), true);
-        assert_to_string("301.0 KB", ByteSize::kb(301), false);
+        assert_to_string("293.9 KiB", ByteSize::kb(301), Format::IEC);
+        assert_to_string("301.0 kB", ByteSize::kb(301), Format::SI);
 
-        assert_to_string("1.0 MiB", ByteSize::mib(1), true);
-        assert_to_string("1048.6 KB", ByteSize::mib(1), false);
+        assert_to_string("1.0 MiB", ByteSize::mib(1), Format::IEC);
+        assert_to_string("1.0 MB", ByteSize::mib(1), Format::SI);
 
-        // a bug case: https://github.com/flang-project/bytesize/issues/8
-        assert_to_string("1.9 GiB", ByteSize::mib(1907), true);
-        assert_to_string("2.0 GB", ByteSize::mib(1908), false);
+        assert_to_string("1.9 GiB", ByteSize::mib(1907), Format::IEC);
+        assert_to_string("2.0 GB", ByteSize::mib(1908), Format::SI);
 
-        assert_to_string("399.6 MiB", ByteSize::mb(419), true);
-        assert_to_string("419.0 MB", ByteSize::mb(419), false);
+        assert_to_string("399.6 MiB", ByteSize::mb(419), Format::IEC);
+        assert_to_string("419.0 MB", ByteSize::mb(419), Format::SI);
 
-        assert_to_string("482.4 GiB", ByteSize::gb(518), true);
-        assert_to_string("518.0 GB", ByteSize::gb(518), false);
+        assert_to_string("482.4 GiB", ByteSize::gb(518), Format::IEC);
+        assert_to_string("518.0 GB", ByteSize::gb(518), Format::SI);
 
-        assert_to_string("741.2 TiB", ByteSize::tb(815), true);
-        assert_to_string("815.0 TB", ByteSize::tb(815), false);
+        assert_to_string("741.2 TiB", ByteSize::tb(815), Format::IEC);
+        assert_to_string("815.0 TB", ByteSize::tb(815), Format::SI);
 
-        assert_to_string("540.9 PiB", ByteSize::pb(609), true);
-        assert_to_string("609.0 PB", ByteSize::pb(609), false);
+        assert_to_string("540.9 PiB", ByteSize::pb(609), Format::IEC);
+        assert_to_string("609.0 PB", ByteSize::pb(609), Format::SI);
     }
 
     #[test]
@@ -477,6 +509,6 @@ mod tests {
 
     #[test]
     fn test_to_string() {
-        assert_to_string("609.0 PB", ByteSize::pb(609), false);
+        assert_to_string("609.0 PB", ByteSize::pb(609), Format::SI);
     }
 }
