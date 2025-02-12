@@ -24,7 +24,9 @@
 //! ```
 //! use bytesize::ByteSize;
 //!
-//! assert_eq!("482.4 GiB", ByteSize::gb(518).to_string());
+//! assert_eq!("518.0 GiB", ByteSize::gib(518).display().iec().to_string());
+//! assert_eq!("556.2 GB", ByteSize::gib(518).display().si().to_string());
+//! assert_eq!("518.0G", ByteSize::gib(518).display().iec_short().to_string());
 //! ```
 //!
 //! Arithmetic operations are supported.
@@ -39,16 +41,22 @@
 //! assert_eq!(ByteSize::gb(996), minus);
 //! ```
 
+use std::{
+    fmt,
+    ops::{Add, AddAssign, Mul, MulAssign, Sub, SubAssign},
+};
+
 #[cfg(feature = "arbitrary")]
 mod arbitrary;
+mod display;
 mod parse;
 #[cfg(feature = "serde")]
 mod serde;
 
-use std::fmt::{self, Debug, Display, Formatter};
-use std::ops::{Add, AddAssign, Mul, MulAssign, Sub, SubAssign};
+pub use crate::display::Display;
+use crate::display::Format;
 
-/// Number of bytes in 1 kilobyte.
+/// Number of bytes in 1 kilobyte
 pub const KB: u64 = 1_000;
 /// Number of bytes in 1 megabyte.
 pub const MB: u64 = 1_000_000;
@@ -85,21 +93,6 @@ const LN_KIB: f64 = 6.931_471_805_599_453;
 
 /// `ln(1000) ~= 6.908`
 const LN_KB: f64 = 6.907_755_278_982_137;
-
-/// Formatting style.
-#[derive(Debug, Clone, Default)]
-pub enum Format {
-    /// IEC (binary) representation.
-    ///
-    /// E.g., "1.0 MiB"
-    #[default]
-    IEC,
-
-    /// SI (decimal) representation.
-    ///
-    /// E.g., "1.02 MB"
-    SI,
-}
 
 /// Converts a quantity of kilobytes to bytes.
 pub fn kb(size: impl Into<u64>) -> u64 {
@@ -227,55 +220,32 @@ impl ByteSize {
     pub const fn as_u64(&self) -> u64 {
         self.0
     }
-}
 
-/// Constructs human-readable string representation of `bytes` with given `format` style.
-pub fn to_string_format(bytes: u64, format: Format) -> String {
-    let unit = match format {
-        Format::IEC => KIB,
-        Format::SI => KB,
-    };
-    let unit_base = match format {
-        Format::IEC => LN_KIB,
-        Format::SI => LN_KB,
-    };
-
-    let unit_prefix = match format {
-        Format::IEC => UNITS_IEC.as_bytes(),
-        Format::SI => UNITS_SI.as_bytes(),
-    };
-    let unit_suffix = match format {
-        Format::IEC => "iB",
-        Format::SI => "B",
-    };
-
-    if bytes < unit {
-        format!("{} B", bytes)
-    } else {
-        let size = bytes as f64;
-        let exp = match (size.ln() / unit_base) as usize {
-            0 => 1,
-            e => e,
-        };
-
-        format!(
-            "{:.1} {}{}",
-            (size / unit.pow(exp as u32) as f64),
-            unit_prefix[exp - 1] as char,
-            unit_suffix
-        )
+    /// Returns a formatting display wrapper.
+    pub fn display(&self) -> Display {
+        Display {
+            byte_size: *self,
+            format: Format::Iec,
+        }
     }
 }
 
-impl Display for ByteSize {
-    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        f.pad(&to_string_format(self.0, Format::IEC))
+impl fmt::Display for ByteSize {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let display = self.display();
+
+        if f.width().is_none() && f.precision().is_none() {
+            // allocation-free fast path for when no formatting options are specified
+            write!(f, "{display}")
+        } else {
+            f.pad(&display.to_string())
+        }
     }
 }
 
-impl Debug for ByteSize {
-    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        <Self as Display>::fmt(self, f)
+impl fmt::Debug for ByteSize {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{} ({} bytes)", self, self.0)
     }
 }
 
@@ -509,48 +479,8 @@ mod tests {
         assert_eq!("|--357 B---|", format!("|{:-^10}|", ByteSize(357)));
     }
 
-    #[track_caller]
-    fn assert_to_string(expected: &str, b: ByteSize, format: Format) {
-        assert_eq!(expected.to_string(), to_string_format(b.0, format));
-    }
-
-    #[test]
-    fn test_to_string_as() {
-        assert_to_string("215 B", ByteSize::b(215), Format::IEC);
-        assert_to_string("215 B", ByteSize::b(215), Format::SI);
-
-        assert_to_string("1.0 KiB", ByteSize::kib(1), Format::IEC);
-        assert_to_string("1.0 kB", ByteSize::kib(1), Format::SI);
-
-        assert_to_string("293.9 KiB", ByteSize::kb(301), Format::IEC);
-        assert_to_string("301.0 kB", ByteSize::kb(301), Format::SI);
-
-        assert_to_string("1.0 MiB", ByteSize::mib(1), Format::IEC);
-        assert_to_string("1.0 MB", ByteSize::mib(1), Format::SI);
-
-        assert_to_string("1.9 GiB", ByteSize::mib(1907), Format::IEC);
-        assert_to_string("2.0 GB", ByteSize::mib(1908), Format::SI);
-
-        assert_to_string("399.6 MiB", ByteSize::mb(419), Format::IEC);
-        assert_to_string("419.0 MB", ByteSize::mb(419), Format::SI);
-
-        assert_to_string("482.4 GiB", ByteSize::gb(518), Format::IEC);
-        assert_to_string("518.0 GB", ByteSize::gb(518), Format::SI);
-
-        assert_to_string("741.2 TiB", ByteSize::tb(815), Format::IEC);
-        assert_to_string("815.0 TB", ByteSize::tb(815), Format::SI);
-
-        assert_to_string("540.9 PiB", ByteSize::pb(609), Format::IEC);
-        assert_to_string("609.0 PB", ByteSize::pb(609), Format::SI);
-    }
-
     #[test]
     fn test_default() {
         assert_eq!(ByteSize::b(0), ByteSize::default());
-    }
-
-    #[test]
-    fn test_to_string() {
-        assert_to_string("609.0 PB", ByteSize::pb(609), Format::SI);
     }
 }

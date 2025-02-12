@@ -181,8 +181,6 @@ impl std::str::FromStr for Unit {
 
 #[cfg(test)]
 mod tests {
-    use crate::to_string_format;
-
     use super::*;
 
     #[test]
@@ -234,9 +232,9 @@ mod tests {
             s.parse::<ByteSize>().unwrap().0
         }
 
-        assert_eq!(parse(&format!("{}", parse("128GB"))), 128 * Unit::GigaByte);
+        assert_eq!(parse(&parse("128GB").to_string()), 128 * Unit::GigaByte);
         assert_eq!(
-            parse(&to_string_format(parse("128.000 GiB"), crate::Format::IEC)),
+            parse(&ByteSize(parse("128.000 GiB")).to_string()),
             128 * Unit::GibiByte,
         );
     }
