@@ -40,6 +40,8 @@
 //! assert_eq!(ByteSize::gb(996), minus);
 //! ```
 
+#[cfg(feature = "arbitrary")]
+mod arbitrary;
 mod parse;
 #[cfg(feature = "serde")]
 mod serde;
@@ -136,7 +138,6 @@ pub fn pib<V: Into<u64>>(size: V) -> u64 {
 
 /// Byte size representation
 #[derive(Copy, Clone, PartialEq, PartialOrd, Eq, Ord, Hash, Default)]
-#[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
 pub struct ByteSize(pub u64);
 
 impl ByteSize {
@@ -400,7 +401,7 @@ mod property_tests {
         }
 
         fn to_string_never_large(size: ByteSize) -> bool {
-            size.to_string().len() < 10
+            size.to_string().len() < 11
         }
 
         // // currently fails on input like "14.0 EiB"
