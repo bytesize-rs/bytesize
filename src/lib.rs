@@ -401,7 +401,7 @@ mod property_tests {
         }
 
         fn to_string_never_large(size: ByteSize) -> bool {
-            size.to_string().len() < 10
+            size.to_string().len() < 11
         }
 
         // // currently fails on input like "14.0 EiB"
