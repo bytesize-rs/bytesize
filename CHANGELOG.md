@@ -11,3 +11,4 @@
 - Reject parsing non-unit characters after whitespace.
 - Remove `ByteSize::to_string_as()` method.
 - Remove top-level `to_string()` method.
+- Remove top-level `B` constant.

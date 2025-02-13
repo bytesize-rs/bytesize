@@ -48,28 +48,26 @@ mod serde;
 use std::fmt::{self, Debug, Display, Formatter};
 use std::ops::{Add, AddAssign, Mul, MulAssign, Sub, SubAssign};
 
-/// byte size for 1 byte
-pub const B: u64 = 1;
-/// bytes size for 1 kilobyte
+/// Number of bytes in 1 kilobyte.
 pub const KB: u64 = 1_000;
-/// bytes size for 1 megabyte
+/// Number of bytes in 1 megabyte.
 pub const MB: u64 = 1_000_000;
-/// bytes size for 1 gigabyte
+/// Number of bytes in 1 gigabyte.
 pub const GB: u64 = 1_000_000_000;
-/// bytes size for 1 terabyte
+/// Number of bytes in 1 terabyte.
 pub const TB: u64 = 1_000_000_000_000;
-/// bytes size for 1 petabyte
+/// Number of bytes in 1 petabyte.
 pub const PB: u64 = 1_000_000_000_000_000;
 
-/// bytes size for 1 kibibyte
+/// Number of bytes in 1 kibibyte.
 pub const KIB: u64 = 1_024;
-/// bytes size for 1 mebibyte
+/// Number of bytes in 1 mebibyte.
 pub const MIB: u64 = 1_048_576;
-/// bytes size for 1 gibibyte
+/// Number of bytes in 1 gibibyte.
 pub const GIB: u64 = 1_073_741_824;
-/// bytes size for 1 tebibyte
+/// Number of bytes in 1 tebibyte.
 pub const TIB: u64 = 1_099_511_627_776;
-/// bytes size for 1 pebibyte
+/// Number of bytes in 1 pebibyte.
 pub const PIB: u64 = 1_125_899_906_842_624;
 
 /// IEC (binary) units.
@@ -88,119 +86,150 @@ const LN_KIB: f64 = 6.931_471_805_599_453;
 /// `ln(1000) ~= 6.908`
 const LN_KB: f64 = 6.907_755_278_982_137;
 
+/// Formatting style.
 #[derive(Debug, Clone, Default)]
 pub enum Format {
+    /// IEC (binary) representation.
+    ///
+    /// E.g., "1.0 MiB"
     #[default]
     IEC,
+
+    /// SI (decimal) representation.
+    ///
+    /// E.g., "1.02 MB"
     SI,
 }
 
-pub fn kb<V: Into<u64>>(size: V) -> u64 {
+/// Converts a quantity of kilobytes to bytes.
+pub fn kb(size: impl Into<u64>) -> u64 {
     size.into() * KB
 }
 
+/// Converts a quantity of kibibytes to bytes.
 pub fn kib<V: Into<u64>>(size: V) -> u64 {
     size.into() * KIB
 }
 
+/// Converts a quantity of megabytes to bytes.
 pub fn mb<V: Into<u64>>(size: V) -> u64 {
     size.into() * MB
 }
 
+/// Converts a quantity of mebibytes to bytes.
 pub fn mib<V: Into<u64>>(size: V) -> u64 {
     size.into() * MIB
 }
 
+/// Converts a quantity of gigabytes to bytes.
 pub fn gb<V: Into<u64>>(size: V) -> u64 {
     size.into() * GB
 }
 
+/// Converts a quantity of gibibytes to bytes.
 pub fn gib<V: Into<u64>>(size: V) -> u64 {
     size.into() * GIB
 }
 
+/// Converts a quantity of terabytes to bytes.
 pub fn tb<V: Into<u64>>(size: V) -> u64 {
     size.into() * TB
 }
 
+/// Converts a quantity of tebibytes to bytes.
 pub fn tib<V: Into<u64>>(size: V) -> u64 {
     size.into() * TIB
 }
 
+/// Converts a quantity of petabytes to bytes.
 pub fn pb<V: Into<u64>>(size: V) -> u64 {
     size.into() * PB
 }
 
+/// Converts a quantity of pebibytes to bytes.
 pub fn pib<V: Into<u64>>(size: V) -> u64 {
     size.into() * PIB
 }
 
-/// Byte size representation
+/// Byte size representation.
 #[derive(Copy, Clone, PartialEq, PartialOrd, Eq, Ord, Hash, Default)]
 pub struct ByteSize(pub u64);
 
 impl ByteSize {
+    /// Constructs a byte size wrapper from a quantity of bytes.
     #[inline(always)]
     pub const fn b(size: u64) -> ByteSize {
         ByteSize(size)
     }
 
+    /// Constructs a byte size wrapper from a quantity of kilobytes.
     #[inline(always)]
     pub const fn kb(size: u64) -> ByteSize {
         ByteSize(size * KB)
     }
 
+    /// Constructs a byte size wrapper from a quantity of kibibytes.
     #[inline(always)]
     pub const fn kib(size: u64) -> ByteSize {
         ByteSize(size * KIB)
     }
 
+    /// Constructs a byte size wrapper from a quantity of megabytes.
     #[inline(always)]
     pub const fn mb(size: u64) -> ByteSize {
         ByteSize(size * MB)
     }
 
+    /// Constructs a byte size wrapper from a quantity of mebibytes.
     #[inline(always)]
     pub const fn mib(size: u64) -> ByteSize {
         ByteSize(size * MIB)
     }
 
+    /// Constructs a byte size wrapper from a quantity of gigabytes.
     #[inline(always)]
     pub const fn gb(size: u64) -> ByteSize {
         ByteSize(size * GB)
     }
 
+    /// Constructs a byte size wrapper from a quantity of gibibytes.
     #[inline(always)]
     pub const fn gib(size: u64) -> ByteSize {
         ByteSize(size * GIB)
     }
 
+    /// Constructs a byte size wrapper from a quantity of terabytes.
     #[inline(always)]
     pub const fn tb(size: u64) -> ByteSize {
         ByteSize(size * TB)
     }
 
+    /// Constructs a byte size wrapper from a quantity of tebibytes.
     #[inline(always)]
     pub const fn tib(size: u64) -> ByteSize {
         ByteSize(size * TIB)
     }
 
+    /// Constructs a byte size wrapper from a quantity of petabytes.
     #[inline(always)]
     pub const fn pb(size: u64) -> ByteSize {
         ByteSize(size * PB)
     }
 
+    /// Constructs a byte size wrapper from a quantity of pebibytes.
     #[inline(always)]
     pub const fn pib(size: u64) -> ByteSize {
         ByteSize(size * PIB)
     }
 
+    /// Returns byte count.
     #[inline(always)]
     pub const fn as_u64(&self) -> u64 {
         self.0
     }
 }
 
+/// Constructs human-readable string representation of `bytes` with given `format` style.
 pub fn to_string_format(bytes: u64, format: Format) -> String {
     let unit = match format {
         Format::IEC => KIB,
@@ -430,20 +459,11 @@ mod tests {
         let mut x = ByteSize::mb(1);
 
         assert_eq!((x + MB as u64).as_u64(), 2_000_000);
-
         assert_eq!((x + MB as u32).as_u64(), 2_000_000);
-
         assert_eq!((x + KB as u16).as_u64(), 1_001_000);
-
-        assert_eq!((x + B as u8).as_u64(), 1_000_001);
-
         assert_eq!((x - MB as u64).as_u64(), 0);
-
         assert_eq!((x - MB as u32).as_u64(), 0);
-
         assert_eq!((x - KB as u32).as_u64(), 999_000);
-
-        assert_eq!((x - B as u32).as_u64(), 999_999);
 
         x += MB as u64;
         x += MB as u32;
