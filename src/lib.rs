@@ -1,31 +1,46 @@
-//! ByteSize is an utility that easily makes bytes size representation
-//! and helps its arithmetic operations.
+//! `ByteSize` is a semantic wrapper for byte count representations.
 //!
-//! ## Example
+//! Features:
 //!
-//! ```ignore
+//! - Pre-defined constants for various size units (e.g., B, Kb, Kib, Mb, Mib, Gb, Gib, ... PB).
+//! - `ByteSize` type which presents size units convertible to different size units.
+//! - Arithmetic operations for `ByteSize`.
+//! - `FromStr` impl for `ByteSize`, allowing for parsing string size representations like "1.5KiB"
+//!   and "521TiB".
+//! - Serde support for binary and human-readable deserializers like JSON.
+//!
+//! # Examples
+//!
+//! Construction using SI or IEC helpers.
+//!
+//! ```
 //! use bytesize::ByteSize;
 //!
-//! fn byte_arithmetic_operator() {
-//!   let x = ByteSize::mb(1);
-//!   let y = ByteSize::kb(100);
-//!
-//!   let plus = x + y;
-//!   print!("{} bytes", plus.as_u64());
-//!
-//!   let minus = ByteSize::tb(100) - ByteSize::gb(4);
-//!   print!("{} bytes", minus.as_u64());
-//! }
+//! assert!(ByteSize::kib(4) > ByteSize::kb(4));
 //! ```
 //!
-//! It also provides its human readable string as follows:
+//! Display as human-readable string.
 //!
 //! ```
 //! use bytesize::ByteSize;
 //!
 //! assert_eq!("482.4 GiB", ByteSize::gb(518).to_string());
 //! ```
+//!
+//! Arithmetic operations are supported.
+//!
+//! ```
+//! use bytesize::ByteSize;
+//!
+//! let plus = ByteSize::mb(1) + ByteSize::kb(100);
+//! println!("{plus}");
+//!
+//! let minus = ByteSize::tb(1) - ByteSize::gb(4);
+//! assert_eq!(ByteSize::gb(996), minus);
+//! ```
 
+#[cfg(feature = "arbitrary")]
+mod arbitrary;
 mod parse;
 #[cfg(feature = "serde")]
 mod serde;
@@ -138,7 +153,6 @@ pub fn pib<V: Into<u64>>(size: V) -> u64 {
 
 /// Byte size representation.
 #[derive(Copy, Clone, PartialEq, PartialOrd, Eq, Ord, Hash, Default)]
-#[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
 pub struct ByteSize(pub u64);
 
 impl ByteSize {
@@ -382,6 +396,37 @@ where
     #[inline(always)]
     fn mul_assign(&mut self, rhs: T) {
         self.0 *= rhs.into();
+    }
+}
+
+#[cfg(test)]
+mod property_tests {
+    use super::*;
+
+    impl quickcheck::Arbitrary for ByteSize {
+        fn arbitrary(g: &mut quickcheck::Gen) -> Self {
+            Self(u64::arbitrary(g))
+        }
+    }
+
+    quickcheck::quickcheck! {
+        fn parsing_never_panics(size: String) -> bool {
+            let _ = size.parse::<ByteSize>();
+            true
+        }
+
+        fn to_string_never_blank(size: ByteSize) -> bool {
+            !size.to_string().is_empty()
+        }
+
+        fn to_string_never_large(size: ByteSize) -> bool {
+            size.to_string().len() < 11
+        }
+
+        // // currently fails on input like "14.0 EiB"
+        // fn string_round_trip(size: ByteSize) -> bool {
+        //     size.to_string().parse::<ByteSize>().unwrap() == size
+        // }
     }
 }
 
