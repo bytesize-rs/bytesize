@@ -15,7 +15,7 @@ fn main() -> io::Result<()> {
 
         if md.is_file() {
             let file_size = md.len();
-            let file_size = bytesize::ByteSize::b(file_size);
+            let file_size = bytesize::ByteSize::b(file_size).display().iec_short();
 
             println!("{file_size}\t{file_name}");
         } else {
