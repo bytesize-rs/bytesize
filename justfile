@@ -66,6 +66,10 @@ test-coverage-codecov toolchain="":
 test-coverage-lcov toolchain="":
     cargo {{ toolchain }} llvm-cov --workspace --all-features --lcov --output-path lcov.info
 
+# Build crate for a no-std target.
+build-no-std:
+    cargo build --target=thumbv6m-none-eabi --manifest-path=./ensure-no-std/Cargo.toml
+
 # Document crates in workspace.
 [group("docs")]
 doc *args:

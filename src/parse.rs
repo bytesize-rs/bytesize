@@ -1,6 +1,9 @@
+use alloc::{format, string::String};
+use core::str;
+
 use super::ByteSize;
 
-impl std::str::FromStr for ByteSize {
+impl str::FromStr for ByteSize {
     type Err = String;
 
     fn from_str(value: &str) -> Result<Self, Self::Err> {
@@ -89,7 +92,7 @@ impl Unit {
 
 mod impl_ops {
     use super::Unit;
-    use std::ops;
+    use core::ops;
 
     impl ops::Add<u64> for Unit {
         type Output = u64;
@@ -156,7 +159,7 @@ mod impl_ops {
     }
 }
 
-impl std::str::FromStr for Unit {
+impl str::FromStr for Unit {
     type Err = String;
 
     fn from_str(unit: &str) -> Result<Self, Self::Err> {
@@ -181,6 +184,8 @@ impl std::str::FromStr for Unit {
 
 #[cfg(test)]
 mod tests {
+    use alloc::string::ToString as _;
+
     use super::*;
 
     #[test]

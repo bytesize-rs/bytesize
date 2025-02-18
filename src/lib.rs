@@ -41,10 +41,12 @@
 //! assert_eq!(ByteSize::gb(996), minus);
 //! ```
 
-use std::{
-    fmt,
-    ops::{Add, AddAssign, Mul, MulAssign, Sub, SubAssign},
-};
+#![cfg_attr(not(feature = "std"), no_std)]
+
+extern crate alloc;
+
+use alloc::string::ToString as _;
+use core::{fmt, ops};
 
 #[cfg(feature = "arbitrary")]
 mod arbitrary;
@@ -251,7 +253,7 @@ impl fmt::Debug for ByteSize {
 
 macro_rules! commutative_op {
     ($t:ty) => {
-        impl Add<ByteSize> for $t {
+        impl ops::Add<ByteSize> for $t {
             type Output = ByteSize;
             #[inline(always)]
             fn add(self, rhs: ByteSize) -> ByteSize {
@@ -259,7 +261,7 @@ macro_rules! commutative_op {
             }
         }
 
-        impl Mul<ByteSize> for $t {
+        impl ops::Mul<ByteSize> for $t {
             type Output = ByteSize;
             #[inline(always)]
             fn mul(self, rhs: ByteSize) -> ByteSize {
@@ -274,7 +276,7 @@ commutative_op!(u32);
 commutative_op!(u16);
 commutative_op!(u8);
 
-impl Add<ByteSize> for ByteSize {
+impl ops::Add<ByteSize> for ByteSize {
     type Output = ByteSize;
 
     #[inline(always)]
@@ -283,14 +285,14 @@ impl Add<ByteSize> for ByteSize {
     }
 }
 
-impl AddAssign<ByteSize> for ByteSize {
+impl ops::AddAssign<ByteSize> for ByteSize {
     #[inline(always)]
     fn add_assign(&mut self, rhs: ByteSize) {
         self.0 += rhs.0
     }
 }
 
-impl<T> Add<T> for ByteSize
+impl<T> ops::Add<T> for ByteSize
 where
     T: Into<u64>,
 {
@@ -301,7 +303,7 @@ where
     }
 }
 
-impl<T> AddAssign<T> for ByteSize
+impl<T> ops::AddAssign<T> for ByteSize
 where
     T: Into<u64>,
 {
@@ -311,7 +313,7 @@ where
     }
 }
 
-impl Sub<ByteSize> for ByteSize {
+impl ops::Sub<ByteSize> for ByteSize {
     type Output = ByteSize;
 
     #[inline(always)]
@@ -320,14 +322,14 @@ impl Sub<ByteSize> for ByteSize {
     }
 }
 
-impl SubAssign<ByteSize> for ByteSize {
+impl ops::SubAssign<ByteSize> for ByteSize {
     #[inline(always)]
     fn sub_assign(&mut self, rhs: ByteSize) {
         self.0 -= rhs.0
     }
 }
 
-impl<T> Sub<T> for ByteSize
+impl<T> ops::Sub<T> for ByteSize
 where
     T: Into<u64>,
 {
@@ -338,7 +340,7 @@ where
     }
 }
 
-impl<T> SubAssign<T> for ByteSize
+impl<T> ops::SubAssign<T> for ByteSize
 where
     T: Into<u64>,
 {
@@ -348,7 +350,7 @@ where
     }
 }
 
-impl<T> Mul<T> for ByteSize
+impl<T> ops::Mul<T> for ByteSize
 where
     T: Into<u64>,
 {
@@ -359,7 +361,7 @@ where
     }
 }
 
-impl<T> MulAssign<T> for ByteSize
+impl<T> ops::MulAssign<T> for ByteSize
 where
     T: Into<u64>,
 {
@@ -371,6 +373,8 @@ where
 
 #[cfg(test)]
 mod property_tests {
+    use alloc::string::{String, ToString as _};
+
     use super::*;
 
     impl quickcheck::Arbitrary for ByteSize {
@@ -393,15 +397,21 @@ mod property_tests {
             size.to_string().len() < 11
         }
 
-        // // currently fails on input like "14.0 EiB"
-        // fn string_round_trip(size: ByteSize) -> bool {
-        //     size.to_string().parse::<ByteSize>().unwrap() == size
-        // }
+        fn string_round_trip(size: ByteSize) -> bool {
+            // currently fails on many inputs above the pebibyte level
+            if size > ByteSize::pib(1) {
+                return true;
+            }
+
+            size.to_string().parse::<ByteSize>().unwrap() == size
+        }
     }
 }
 
 #[cfg(test)]
 mod tests {
+    use alloc::format;
+
     use super::*;
 
     #[test]

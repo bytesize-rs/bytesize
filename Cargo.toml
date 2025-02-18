@@ -8,14 +8,15 @@ authors = [
     "Rob Ede <robjtede@icloud.com>",
 ]
 keywords = ["byte", "byte-size", "utility", "human-readable", "format"]
-categories = ["development-tools", "filesystem"]
+categories = ["development-tools", "filesystem", "no-std"]
 repository = "https://github.com/bytesize-rs/bytesize"
 license = "Apache-2.0"
 edition = "2021"
 rust-version = "1.70"
 
 [features]
-default = []
+default = ["std"]
+std = []
 arbitrary = ["dep:arbitrary"]
 serde = ["dep:serde"]
 

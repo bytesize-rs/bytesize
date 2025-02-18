@@ -122,6 +122,7 @@ impl fmt::Display for Display {
         let bytes = self.byte_size.as_u64();
 
         let unit = self.format.unit();
+        #[allow(unused_variables)] // used in std contexts
         let unit_base = self.format.unit_base();
 
         let unit_prefixes = self.format.unit_prefixes();
@@ -132,10 +133,12 @@ impl fmt::Display for Display {
             write!(f, "{bytes}{unit_separator}B")?;
         } else {
             let size = bytes as f64;
-            let exp = match (size.ln() / unit_base) as usize {
-                0 => 1,
-                e => e,
-            };
+
+            #[cfg(feature = "std")]
+            let exp = ideal_unit_std(size, unit_base);
+
+            #[cfg(not(feature = "std"))]
+            let exp = ideal_unit_no_std(size, unit);
 
             let unit_prefix = unit_prefixes[exp - 1] as char;
 
@@ -150,9 +153,66 @@ impl fmt::Display for Display {
     }
 }
 
+#[allow(dead_code)] // used in no-std contexts
+fn ideal_unit_no_std(size: f64, unit: u64) -> usize {
+    assert!(size >= unit as f64, "only called when bytes >= unit");
+
+    let mut ideal_prefix = 0;
+    let mut ideal_size = size;
+
+    loop {
+        ideal_prefix += 1;
+        ideal_size /= unit as f64;
+
+        if ideal_size < unit as f64 {
+            break;
+        }
+    }
+
+    ideal_prefix
+}
+
+#[cfg(feature = "std")]
+#[allow(dead_code)] // used in std contexts
+fn ideal_unit_std(size: f64, unit_base: f64) -> usize {
+    assert!(size.ln() >= unit_base, "only called when bytes >= unit");
+
+    match (size.ln() / unit_base) as usize {
+        0 => unreachable!(),
+        e => e,
+    }
+}
+
 #[cfg(test)]
 mod tests {
+    use alloc::string::ToString as _;
+
     use super::*;
+
+    #[cfg(feature = "std")]
+    quickcheck::quickcheck! {
+        #[test]
+        fn ideal_unit_selection_std_no_std_iec(bytes: ByteSize) -> bool {
+            if bytes.0 < 1025 {
+                return true;
+            }
+
+            let size = bytes.0 as f64;
+
+            ideal_unit_std(size, crate::LN_KIB) == ideal_unit_no_std(size, crate::KIB)
+        }
+
+        #[test]
+        fn ideal_unit_selection_std_no_std_si(bytes: ByteSize) -> bool {
+            if bytes.0 < 1025 {
+                return true;
+            }
+
+            let size = bytes.0 as f64;
+
+            ideal_unit_std(size, crate::LN_KB) == ideal_unit_no_std(size, crate::KB)
+        }
+    }
 
     #[test]
     fn to_string_iec() {

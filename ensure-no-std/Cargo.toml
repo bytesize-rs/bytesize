@@ -1,0 +1,14 @@
+[package]
+name = "ensure-no-std"
+version = "0.1.0"
+publish = false
+edition = "2018"
+
+[profile.dev]
+panic = "abort"
+
+[profile.release]
+panic = "abort"
+
+[dependencies]
+bytesize = { path = "..", default-features = false }

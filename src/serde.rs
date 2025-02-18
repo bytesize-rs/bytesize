@@ -1,4 +1,5 @@
-use std::fmt;
+use alloc::string::{String, ToString as _};
+use core::fmt;
 
 use serde::{de, Deserialize, Deserializer, Serialize, Serializer};
 
@@ -59,7 +60,7 @@ impl Serialize for ByteSize {
         S: Serializer,
     {
         if ser.is_human_readable() {
-            <str>::serialize(self.to_string().as_str(), ser)
+            <String>::serialize(&self.to_string(), ser)
         } else {
             self.0.serialize(ser)
         }
