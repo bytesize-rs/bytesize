@@ -56,7 +56,7 @@ mod serde;
 pub use crate::display::Display;
 use crate::display::Format;
 
-/// Number of bytes in 1 kilobyte
+/// Number of bytes in 1 kilobyte.
 pub const KB: u64 = 1_000;
 /// Number of bytes in 1 megabyte.
 pub const MB: u64 = 1_000_000;
