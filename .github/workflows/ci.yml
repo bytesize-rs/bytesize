@@ -47,6 +47,7 @@ jobs:
         uses: actions-rust-lang/setup-rust-toolchain@v1.10.1
         with:
           toolchain: ${{ matrix.toolchain.version }}
+          target: thumbv6m-none-eabi
 
       - name: Install just, nextest
         uses: taiki-e/install-action@v2.44.25
@@ -55,3 +56,7 @@ jobs:
 
       - name: Test
         run: just test
+
+      - name: Build (no-std)
+        if: matrix.toolchain.name == 'stable'
+        run: just build-no-std
