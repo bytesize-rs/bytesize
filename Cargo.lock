@@ -31,7 +31,7 @@ checksum = "8f68f53c83ab957f72c32642f3868eec03eb974d1fb82e453128456482613d36"
 
 [[package]]
 name = "bytesize"
-version = "2.0.0-beta.1"
+version = "2.0.0"
 dependencies = [
  "arbitrary",
  "divan",

@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-## v2.0.0-beta.1
+## v2.0.0
 
 - Add support for `no_std` targets.
 - Use IEC (binary) format by default with `Display`.
