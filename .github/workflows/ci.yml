@@ -54,6 +54,10 @@ jobs:
         with:
           tool: just,nextest
 
+      - name: Work around MSRV issues
+        if: matrix.toolchain.name == 'msrv'
+        run: just downgrade-for-msrv
+
       - name: Test
         run: just test
 

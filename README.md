@@ -2,8 +2,13 @@
 
 <!-- prettier-ignore-start -->
 
-[![CI](https://github.com/bytesize-rs/bytesize/actions/workflows/ci.yml/badge.svg)](https://github.com/bytesize-rs/bytesize/actions/workflows/ci.yml)
-[![Crates.io Version](https://img.shields.io/crates/v/bytesize.svg)](https://crates.io/crates/bytesize)
+[![crates.io](https://img.shields.io/crates/v/bytesize?label=latest)](https://crates.io/crates/bytesize)
+[![Documentation](https://docs.rs/bytesize/badge.svg?version=2.0.0)](https://docs.rs/bytesize/2.0.0)
+![Version](https://img.shields.io/badge/rustc-1.70+-ab6000.svg)
+![Apache 2.0 licensed](https://img.shields.io/crates/l/bytesize.svg)
+<br />
+[![Dependency Status](https://deps.rs/crate/bytesize/2.0.0/status.svg)](https://deps.rs/crate/bytesize/2.0.0)
+[![Download](https://img.shields.io/crates/d/bytesize.svg)](https://crates.io/crates/bytesize)
 
 <!-- prettier-ignore-end -->
 
@@ -34,8 +39,9 @@ Display as human-readable string.
 ```rust
 use bytesize::ByteSize;
 
-assert_eq!("482.4 GiB", ByteSize::gb(518).to_string_as(true));
-assert_eq!("518.0 GB", ByteSize::gb(518).to_string_as(false));
+assert_eq!("518.0 GiB", ByteSize::gib(518).display().iec().to_string());
+assert_eq!("556.2 GB", ByteSize::gib(518).display().si().to_string());
+assert_eq!("518.0G", ByteSize::gib(518).display().iec_short().to_string());
 ```
 
 Arithmetic operations are supported.

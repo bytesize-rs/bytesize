@@ -2,8 +2,13 @@
 
 ## Unreleased
 
+## v2.0.0-beta.1
+
+- Add support for `no_std` targets.
 - Use IEC (binary) format by default with `Display`.
 - Use "kB" for SI unit.
+- Add `Display` type for customizing printed format.
+- Add `ByteSize::display()` method.
 - Implement `Sub<ByteSize>` for `ByteSize`.
 - Implement `Sub<impl Into<u64>>` for `ByteSize`.
 - Implement `SubAssign<ByteSize>` for `ByteSize`.

@@ -47,14 +47,14 @@ test toolchain="":
 
 # Downgrade dev-dependencies necessary to run MSRV checks/tests.
 [private]
-downgrade-msrv:
+downgrade-for-msrv:
     cargo update -p=divan --precise=0.1.15
     cargo update -p=clap --precise=4.3.24
     cargo update -p=clap_lex --precise=0.5.0
 
 # Test workspace using MSRV.
 [group("test")]
-test-msrv: downgrade-msrv (test msrv_rustup)
+test-msrv: downgrade-for-msrv (test msrv_rustup)
 
 # Test workspace and generate Codecov coverage file
 [group("test")]
