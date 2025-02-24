@@ -12,24 +12,30 @@ impl fmt::Display for ByteSizeAlwaysPad {
 
 #[divan::bench]
 fn display_inner_display() {
-    black_box(format!("{}", bytesize::ByteSize::kib(42).display()));
+    black_box(format!(
+        "{}",
+        black_box(bytesize::ByteSize::kib(42).display()),
+    ));
 }
 
 #[divan::bench]
 fn display_bytesize_standard() {
-    black_box(format!("{}", bytesize::ByteSize::kib(42).display()));
+    black_box(format!(
+        "{}",
+        black_box(bytesize::ByteSize::kib(42).display()),
+    ));
 }
 
 #[divan::bench]
 fn display_bytesize_custom() {
-    black_box(format!("|{:-^10}|", bytesize::ByteSize::kib(42)));
+    black_box(format!("|{:-^10}|", black_box(bytesize::ByteSize::kib(42))));
 }
 
 #[divan::bench]
 fn display_always_pad_standard() {
     black_box(format!(
         "{}",
-        ByteSizeAlwaysPad(bytesize::ByteSize::kib(42))
+        black_box(ByteSizeAlwaysPad(bytesize::ByteSize::kib(42))),
     ));
 }
 
@@ -37,7 +43,7 @@ fn display_always_pad_standard() {
 fn display_always_pad_custom() {
     black_box(format!(
         "|{:-^10}|",
-        ByteSizeAlwaysPad(bytesize::ByteSize::kib(42))
+        black_box(ByteSizeAlwaysPad(bytesize::ByteSize::kib(42))),
     ));
 }
 
