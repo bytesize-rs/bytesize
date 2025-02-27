@@ -84,7 +84,7 @@ impl Display {
         self
     }
 
-    /// Format using SI (decimal) units.
+    /// Format using a short style and IEC (binary) units.
     ///
     /// E.g., `4.2 MB`.
     ///
@@ -96,7 +96,7 @@ impl Display {
         self
     }
 
-    /// Format using a short style and IEC (binary) units.
+    /// Format using SI (decimal) units.
     ///
     /// E.g., `4.2M`.
     #[must_use]
