@@ -186,7 +186,7 @@ fn ideal_unit_std(size: f64, unit_base: f64) -> usize {
 
 #[cfg(test)]
 mod tests {
-    use alloc::string::ToString as _;
+    use alloc::{format, string::ToString as _};
 
     use super::*;
 
