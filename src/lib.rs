@@ -238,7 +238,7 @@ impl fmt::Display for ByteSize {
 
         if f.width().is_none() {
             // allocation-free fast path for when no formatting options are specified
-            display.fmt(f)
+            fmt::Display::fmt(&display, f)
         } else {
             f.pad(&display.to_string())
         }

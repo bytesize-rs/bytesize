@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 2.0.1
+
 - Add support for precision in `Display` implementations.
 
 ## v2.0.0
