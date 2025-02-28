@@ -128,6 +128,7 @@ impl fmt::Display for Display {
         let unit_prefixes = self.format.unit_prefixes();
         let unit_separator = self.format.unit_separator();
         let unit_suffix = self.format.unit_suffix();
+        let precision = f.precision().unwrap_or(1);
 
         if bytes < unit {
             write!(f, "{bytes}{unit_separator}B")?;
@@ -144,7 +145,7 @@ impl fmt::Display for Display {
 
             write!(
                 f,
-                "{:.1}{unit_separator}{unit_prefix}{unit_suffix}",
+                "{:.precision$}{unit_separator}{unit_prefix}{unit_suffix}",
                 (size / unit.pow(exp as u32) as f64),
             )?;
         }
@@ -185,7 +186,7 @@ fn ideal_unit_std(size: f64, unit_base: f64) -> usize {
 
 #[cfg(test)]
 mod tests {
-    use alloc::string::ToString as _;
+    use alloc::{format, string::ToString as _};
 
     use super::*;
 
@@ -292,5 +293,13 @@ mod tests {
 
         assert_to_string("540.9 PiB", ByteSize::pb(609), Format::Iec);
         assert_to_string("609.0 PB", ByteSize::pb(609), Format::Si);
+    }
+
+    #[test]
+    fn precision() {
+        let size = ByteSize::mib(1908);
+        assert_eq!("1.9 GiB".to_string(), format!("{}", size));
+        assert_eq!("2 GiB".to_string(), format!("{:.0}", size));
+        assert_eq!("1.86328 GiB".to_string(), format!("{:.5}", size));
     }
 }

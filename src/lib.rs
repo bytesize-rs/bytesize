@@ -236,9 +236,9 @@ impl fmt::Display for ByteSize {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let display = self.display();
 
-        if f.width().is_none() && f.precision().is_none() {
+        if f.width().is_none() {
             // allocation-free fast path for when no formatting options are specified
-            write!(f, "{display}")
+            display.fmt(f)
         } else {
             f.pad(&display.to_string())
         }
