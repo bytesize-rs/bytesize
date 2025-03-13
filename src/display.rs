@@ -76,7 +76,7 @@ pub struct Display {
 impl Display {
     /// Format using IEC (binary) units.
     ///
-    /// E.g., `4.2 MiB`.
+    /// E.g., `11.8 MiB`.
     #[must_use]
     #[doc(alias = "binary")]
     pub fn iec(mut self) -> Self {
@@ -86,7 +86,7 @@ impl Display {
 
     /// Format using a short style and IEC (binary) units.
     ///
-    /// E.g., `4.2 MB`.
+    /// E.g., `11.8M`.
     ///
     /// Designed to produce output compatible with `sort -h`.
     #[must_use]
@@ -98,7 +98,7 @@ impl Display {
 
     /// Format using SI (decimal) units.
     ///
-    /// E.g., `4.2M`.
+    /// E.g., `12.3 MB`.
     #[must_use]
     #[doc(alias = "decimal")]
     pub fn si(mut self) -> Self {
@@ -108,7 +108,7 @@ impl Display {
 
     /// Format using a short style and SI (decimal) units.
     ///
-    /// E.g., `4.2M`.
+    /// E.g., `12.3M`.
     #[must_use]
     #[doc(alias = "decimal")]
     pub fn si_short(mut self) -> Self {
