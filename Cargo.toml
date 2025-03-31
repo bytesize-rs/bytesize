@@ -1,7 +1,7 @@
 [package]
 name = "bytesize"
 description = "an utility for human-readable bytes representations"
-version = "1.3.2"
+version = "1.3.3"
 authors = ["Hyunsik Choi <hyunsik.choi@gmail.com>"]
 
 homepage = "https://github.com/bytesize-rs/bytesize/"
@@ -10,6 +10,7 @@ repository = "https://github.com/bytesize-rs/bytesize/"
 readme = "README.md"
 keywords = ["byte", "byte-size", "utility", "human-readable", "format"]
 license = "Apache-2.0"
+rust-version = "1.61"
 
 [dependencies]
 serde = { version = "1.0.185", optional = true }
