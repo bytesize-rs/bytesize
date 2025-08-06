@@ -28,7 +28,7 @@ jobs:
           components: clippy
 
       - name: Install just, cargo-hack
-        uses: taiki-e/install-action@v2.44.25
+        uses: taiki-e/install-action@v2.57.8
         with:
           tool: just,cargo-hack
 
@@ -76,7 +76,7 @@ jobs:
           components: clippy
 
       - name: Install just, cargo-sort
-        uses: taiki-e/install-action@v2.44.25
+        uses: taiki-e/install-action@v2.57.8
         with:
           tool: just,cargo-sort
 
