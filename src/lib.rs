@@ -2,7 +2,7 @@
 //!
 //! Features:
 //!
-//! - Pre-defined constants for various size units (e.g., B, Kb, Kib, Mb, Mib, Gb, Gib, ... PB).
+//! - Pre-defined constants for various size units (e.g., B, Kb, Kib, Mb, Mib, Gb, Gib, ... EB).
 //! - `ByteSize` type which presents size units convertible to different size units.
 //! - Arithmetic operations for `ByteSize`.
 //! - `FromStr` impl for `ByteSize`, allowing for parsing string size representations like "1.5KiB"
@@ -68,6 +68,8 @@ pub const GB: u64 = 1_000_000_000;
 pub const TB: u64 = 1_000_000_000_000;
 /// Number of bytes in 1 petabyte.
 pub const PB: u64 = 1_000_000_000_000_000;
+/// Number of bytes in 1 exabyte.
+pub const EB: u64 = 1_000_000_000_000_000_000;
 
 /// Number of bytes in 1 kibibyte.
 pub const KIB: u64 = 1_024;
@@ -79,6 +81,8 @@ pub const GIB: u64 = 1_073_741_824;
 pub const TIB: u64 = 1_099_511_627_776;
 /// Number of bytes in 1 pebibyte.
 pub const PIB: u64 = 1_125_899_906_842_624;
+/// Number of bytes in 1 exbibyte.
+pub const EIB: u64 = 1_152_921_504_606_846_976;
 
 /// IEC (binary) units.
 ///
@@ -144,6 +148,16 @@ pub fn pb<V: Into<u64>>(size: V) -> u64 {
 /// Converts a quantity of pebibytes to bytes.
 pub fn pib<V: Into<u64>>(size: V) -> u64 {
     size.into() * PIB
+}
+
+/// Converts a quantity of exabytes to bytes.
+pub fn eb<V: Into<u64>>(size: V) -> u64 {
+    size.into() * EB
+}
+
+/// Converts a quantity of exbibytes to bytes.
+pub fn eib<V: Into<u64>>(size: V) -> u64 {
+    size.into() * EIB
 }
 
 /// Byte size representation.
@@ -215,6 +229,18 @@ impl ByteSize {
     #[inline(always)]
     pub const fn pib(size: u64) -> ByteSize {
         ByteSize(size * PIB)
+    }
+
+    /// Constructs a byte size wrapper from a quantity of exabytes.
+    #[inline(always)]
+    pub const fn eb(size: u64) -> ByteSize {
+        ByteSize(size * EB)
+    }
+
+    /// Constructs a byte size wrapper from a quantity of exbibytes.
+    #[inline(always)]
+    pub const fn eib(size: u64) -> ByteSize {
+        ByteSize(size * EIB)
     }
 
     /// Returns byte count.
@@ -459,6 +485,7 @@ mod tests {
         assert!(ByteSize::mb(1) != ByteSize::kib(1024));
         assert!(ByteSize::mb(1) < ByteSize::kib(1024));
         assert!(ByteSize::b(0) < ByteSize::tib(1));
+        assert!(ByteSize::pib(1) < ByteSize::eb(1));
     }
 
     #[track_caller]
@@ -475,6 +502,7 @@ mod tests {
         assert_display("518.0 GiB", ByteSize::gib(518));
         assert_display("815.0 TiB", ByteSize::tib(815));
         assert_display("609.0 PiB", ByteSize::pib(609));
+        assert_display("15.0 EiB", ByteSize::eib(15));
     }
 
     #[test]

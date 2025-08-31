@@ -62,12 +62,14 @@ enum Unit {
     GigaByte,
     TeraByte,
     PetaByte,
+    ExaByte,
     // power of twos
     KibiByte,
     MebiByte,
     GibiByte,
     TebiByte,
     PebiByte,
+    ExbiByte,
 }
 
 impl Unit {
@@ -80,12 +82,14 @@ impl Unit {
             Self::GigaByte => crate::GB,
             Self::TeraByte => crate::TB,
             Self::PetaByte => crate::PB,
+            Self::ExaByte  => crate::EB,
             // binary units
             Self::KibiByte => crate::KIB,
             Self::MebiByte => crate::MIB,
             Self::GibiByte => crate::GIB,
             Self::TebiByte => crate::TIB,
             Self::PebiByte => crate::PIB,
+            Self::ExbiByte => crate::EIB,
         }
     }
 }
@@ -171,12 +175,14 @@ impl str::FromStr for Unit {
             "g" | "gb" => Ok(Self::GigaByte),
             "t" | "tb" => Ok(Self::TeraByte),
             "p" | "pb" => Ok(Self::PetaByte),
+            "e" | "eb" => Ok(Self::ExaByte),
             // power of twos
             "ki" | "kib" => Ok(Self::KibiByte),
             "mi" | "mib" => Ok(Self::MebiByte),
             "gi" | "gib" => Ok(Self::GibiByte),
             "ti" | "tib" => Ok(Self::TebiByte),
             "pi" | "pib" => Ok(Self::PebiByte),
+            "ei" | "eib" => Ok(Self::ExbiByte),
             _ => Err(format!("couldn't parse unit of {:?}", unit)),
         }
     }
