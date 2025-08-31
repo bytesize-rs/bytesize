@@ -490,7 +490,7 @@ mod tests {
 
     #[track_caller]
     fn assert_display(expected: &str, b: ByteSize) {
-        assert_eq!(expected, format!("{}", b));
+        assert_eq!(expected, format!("{b}"));
     }
 
     #[test]
