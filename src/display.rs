@@ -298,8 +298,8 @@ mod tests {
     #[test]
     fn precision() {
         let size = ByteSize::mib(1908);
-        assert_eq!("1.9 GiB".to_string(), format!("{}", size));
-        assert_eq!("2 GiB".to_string(), format!("{:.0}", size));
-        assert_eq!("1.86328 GiB".to_string(), format!("{:.5}", size));
+        assert_eq!("1.9 GiB".to_string(), format!("{size}"));
+        assert_eq!("2 GiB".to_string(), format!("{size:.0}"));
+        assert_eq!("1.86328 GiB".to_string(), format!("{size:.5}"));
     }
 }
