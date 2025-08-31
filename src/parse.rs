@@ -78,7 +78,7 @@ impl Unit {
             Self::GigaByte => crate::GB,
             Self::TeraByte => crate::TB,
             Self::PetaByte => crate::PB,
-            Self::ExaByte  => crate::EB,
+            Self::ExaByte => crate::EB,
             // binary units
             Self::KibiByte => crate::KIB,
             Self::MebiByte => crate::MIB,
