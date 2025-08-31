@@ -17,15 +17,11 @@ impl str::FromStr for ByteSize {
                 match suffix.parse::<Unit>() {
                     Ok(u) => Ok(Self((v * u) as u64)),
                     Err(error) => Err(format!(
-                        "couldn't parse {:?} into a known SI unit, {}",
-                        suffix, error
+                        "couldn't parse {suffix:?} into a known SI unit, {error}"
                     )),
                 }
             }
-            Err(error) => Err(format!(
-                "couldn't parse {:?} into a ByteSize, {}",
-                value, error
-            )),
+            Err(error) => Err(format!("couldn't parse {value:?} into a ByteSize, {error}")),
         }
     }
 }
@@ -177,7 +173,7 @@ impl str::FromStr for Unit {
             "gi" | "gib" => Ok(Self::GibiByte),
             "ti" | "tib" => Ok(Self::TebiByte),
             "pi" | "pib" => Ok(Self::PebiByte),
-            _ => Err(format!("couldn't parse unit of {:?}", unit)),
+            _ => Err(format!("couldn't parse unit of {unit:?}")),
         }
     }
 }
