@@ -1,7 +1,7 @@
 use alloc::string::{String, ToString as _};
 use core::fmt;
 
-use serde::{de, Deserialize, Deserializer, Serialize, Serializer};
+use serde_core::{de, Deserialize, Deserializer, Serialize, Serializer};
 
 use crate::ByteSize;
 
@@ -70,6 +70,8 @@ impl Serialize for ByteSize {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    use serde::{Deserialize, Serialize};
 
     #[test]
     fn test_serde() {

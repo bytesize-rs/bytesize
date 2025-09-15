@@ -14,6 +14,9 @@ license = "Apache-2.0"
 edition = "2021"
 rust-version = "1.70"
 
+[package.metadata.cargo_check_external_types]
+allowed_external_types = ["arbitrary::*", "serde_core::*"]
+
 [package.metadata.docs.rs]
 all-features = true
 
@@ -21,11 +24,11 @@ all-features = true
 default = ["std"]
 std = []
 arbitrary = ["dep:arbitrary"]
-serde = ["dep:serde"]
+serde = ["dep:serde_core"]
 
 [dependencies]
 arbitrary = { version = "1", optional = true }
-serde = { version = "1", optional = true }
+serde_core = { version = "1", optional = true }
 
 [dev-dependencies]
 divan = "0.1"

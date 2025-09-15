@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Support parsing and formatting exabytes (EB) & exbibytes (EiB).
+- Migrate `serde` dependency to `serde_core`.
+
 ## 2.0.1
 
 - Add support for precision in `Display` implementations.

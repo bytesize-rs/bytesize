@@ -2,7 +2,7 @@
 //!
 //! Features:
 //!
-//! - Pre-defined constants for various size units (e.g., B, Kb, Kib, Mb, Mib, Gb, Gib, ... EB).
+//! - Pre-defined constants for various size units (e.g., B, KB, KiB, MB, MiB, ... EB, EiB).
 //! - `ByteSize` type which presents size units convertible to different size units.
 //! - Arithmetic operations for `ByteSize`.
 //! - `FromStr` impl for `ByteSize`, allowing for parsing string size representations like "1.5KiB"
