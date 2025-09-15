@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 2.1.0
+
 - Support parsing and formatting exabytes (EB) & exbibytes (EiB).
 - Migrate `serde` dependency to `serde_core`.
 
