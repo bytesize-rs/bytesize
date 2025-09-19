@@ -251,73 +251,73 @@ impl ByteSize {
 
     /// Returns byte count as kilobytes.
     #[inline(always)]
-    pub const fn as_kb(&self) -> f64 {
+    pub fn as_kb(&self) -> f64 {
         self.0 as f64 / KB as f64
     }
 
     /// Returns byte count as kibibytes.
     #[inline(always)]
-    pub const fn as_kib(&self) -> f64 {
+    pub fn as_kib(&self) -> f64 {
         self.0 as f64 / KIB as f64
     }
 
     /// Returns byte count as megabytes.
     #[inline(always)]
-    pub const fn as_mb(&self) -> f64 {
+    pub fn as_mb(&self) -> f64 {
         self.0 as f64 / MB as f64
     }
 
     /// Returns byte count as mebibytes.
     #[inline(always)]
-    pub const fn as_mib(&self) -> f64 {
+    pub fn as_mib(&self) -> f64 {
         self.0 as f64 / MIB as f64
     }
 
     /// Returns byte count as gigabytes.
     #[inline(always)]
-    pub const fn as_gb(&self) -> f64 {
+    pub fn as_gb(&self) -> f64 {
         self.0 as f64 / GB as f64
     }
 
     /// Returns byte count as gibibytes.
     #[inline(always)]
-    pub const fn as_gib(&self) -> f64 {
+    pub fn as_gib(&self) -> f64 {
         self.0 as f64 / GIB as f64
     }
 
     /// Returns byte count as terabytes.
     #[inline(always)]
-    pub const fn as_tb(&self) -> f64 {
+    pub fn as_tb(&self) -> f64 {
         self.0 as f64 / TB as f64
     }
 
     /// Returns byte count as tebibytes.
     #[inline(always)]
-    pub const fn as_tib(&self) -> f64 {
+    pub fn as_tib(&self) -> f64 {
         self.0 as f64 / TIB as f64
     }
 
     /// Returns byte count as petabytes.
     #[inline(always)]
-    pub const fn as_pb(&self) -> f64 {
+    pub fn as_pb(&self) -> f64 {
         self.0 as f64 / PB as f64
     }
 
     /// Returns byte count as pebibytes.
     #[inline(always)]
-    pub const fn as_pib(&self) -> f64 {
+    pub fn as_pib(&self) -> f64 {
         self.0 as f64 / PB as f64
     }
 
     /// Returns byte count as exabytes.
     #[inline(always)]
-    pub const fn as_eb(&self) -> f64 {
+    pub fn as_eb(&self) -> f64 {
         self.0 as f64 / EB as f64
     }
 
     /// Returns byte count as exbibytes.
     #[inline(always)]
-    pub const fn as_eib(&self) -> f64 {
+    pub fn as_eib(&self) -> f64 {
         self.0 as f64 / EIB as f64
     }
 
