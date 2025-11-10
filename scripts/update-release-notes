@@ -31,5 +31,5 @@ for spec in $specs; do
     version="$(echo "$spec" | cut -d: -f2)"
     tag="$(echo "$spec" | cut -d: -f3)"
     
-    update_release_notes "crates/$name" "$version" "$tag"
+    update_release_notes "." "$version" "$tag"
 done

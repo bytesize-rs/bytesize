@@ -63,7 +63,7 @@ for spec in $specs; do
     name="$(echo "$spec" | cut -d: -f1)"
     version="$(echo "$spec" | cut -d: -f2)"
     
-    bump_changelog_version "crates/$name" "$version"
+    bump_changelog_version "." "$version"
 done
 
 PR_NUMBER="$(echo "$RELEASE_PLZ_PR_JSON" | jq -r '.number')"
