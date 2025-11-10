@@ -562,12 +562,12 @@ mod tests {
 
     #[test]
     fn as_unit_conversions() {
-        assert_eq!(ByteSize::gb(43).as_kib(), 41992187.5_f64);
-        assert_eq!(ByteSize::mib(27).as_gb(), 0.028311552_f64);
-        assert_eq!(ByteSize::tib(39).as_pib(), 0.042880953483264_f64);
-        assert_eq!(ByteSize::kib(938948).as_mb(), 961.482752_f64);
-        assert_eq!(ByteSize::pb(4837).as_eib(), 4.195428726649908_f64);
-        assert_eq!(ByteSize::b(2873872874893).as_tib(), 2.613772153284117_f64);
+        assert_eq!(41992187.5, ByteSize::gb(43).as_kib());
+        assert_eq!(0.028311552, ByteSize::mib(27).as_gb());
+        assert_eq!(0.0380859375, ByteSize::tib(39).as_pib());
+        assert_eq!(961.482752, ByteSize::kib(938948).as_mb());
+        assert_eq!(4.195428726649908, ByteSize::pb(4837).as_eib());
+        assert_eq!(2.613772153284117, ByteSize::b(2873872874893).as_tib());
     }
 
     #[track_caller]
