@@ -249,6 +249,78 @@ impl ByteSize {
         self.0
     }
 
+    /// Returns byte count as kilobytes.
+    #[inline(always)]
+    pub fn as_kb(&self) -> f64 {
+        self.0 as f64 / KB as f64
+    }
+
+    /// Returns byte count as kibibytes.
+    #[inline(always)]
+    pub fn as_kib(&self) -> f64 {
+        self.0 as f64 / KIB as f64
+    }
+
+    /// Returns byte count as megabytes.
+    #[inline(always)]
+    pub fn as_mb(&self) -> f64 {
+        self.0 as f64 / MB as f64
+    }
+
+    /// Returns byte count as mebibytes.
+    #[inline(always)]
+    pub fn as_mib(&self) -> f64 {
+        self.0 as f64 / MIB as f64
+    }
+
+    /// Returns byte count as gigabytes.
+    #[inline(always)]
+    pub fn as_gb(&self) -> f64 {
+        self.0 as f64 / GB as f64
+    }
+
+    /// Returns byte count as gibibytes.
+    #[inline(always)]
+    pub fn as_gib(&self) -> f64 {
+        self.0 as f64 / GIB as f64
+    }
+
+    /// Returns byte count as terabytes.
+    #[inline(always)]
+    pub fn as_tb(&self) -> f64 {
+        self.0 as f64 / TB as f64
+    }
+
+    /// Returns byte count as tebibytes.
+    #[inline(always)]
+    pub fn as_tib(&self) -> f64 {
+        self.0 as f64 / TIB as f64
+    }
+
+    /// Returns byte count as petabytes.
+    #[inline(always)]
+    pub fn as_pb(&self) -> f64 {
+        self.0 as f64 / PB as f64
+    }
+
+    /// Returns byte count as pebibytes.
+    #[inline(always)]
+    pub fn as_pib(&self) -> f64 {
+        self.0 as f64 / PIB as f64
+    }
+
+    /// Returns byte count as exabytes.
+    #[inline(always)]
+    pub fn as_eb(&self) -> f64 {
+        self.0 as f64 / EB as f64
+    }
+
+    /// Returns byte count as exbibytes.
+    #[inline(always)]
+    pub fn as_eib(&self) -> f64 {
+        self.0 as f64 / EIB as f64
+    }
+
     /// Returns a formatting display wrapper.
     pub fn display(&self) -> Display {
         Display {
@@ -486,6 +558,16 @@ mod tests {
         assert!(ByteSize::mb(1) < ByteSize::kib(1024));
         assert!(ByteSize::b(0) < ByteSize::tib(1));
         assert!(ByteSize::pib(1) < ByteSize::eb(1));
+    }
+
+    #[test]
+    fn as_unit_conversions() {
+        assert_eq!(41992187.5, ByteSize::gb(43).as_kib());
+        assert_eq!(0.028311552, ByteSize::mib(27).as_gb());
+        assert_eq!(0.0380859375, ByteSize::tib(39).as_pib());
+        assert_eq!(961.482752, ByteSize::kib(938948).as_mb());
+        assert_eq!(4.195428726649908, ByteSize::pb(4837).as_eib());
+        assert_eq!(2.613772153284117, ByteSize::b(2873872874893).as_tib());
     }
 
     #[track_caller]
