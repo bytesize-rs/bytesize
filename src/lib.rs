@@ -243,7 +243,7 @@ impl ByteSize {
         ByteSize(size * EIB)
     }
 
-    /// Returns raw byte count.
+    /// Returns byte count.
     #[inline(always)]
     pub const fn as_u64(&self) -> u64 {
         self.0
@@ -306,7 +306,7 @@ impl ByteSize {
     /// Returns byte count as pebibytes.
     #[inline(always)]
     pub fn as_pib(&self) -> f64 {
-        self.0 as f64 / PB as f64
+        self.0 as f64 / PIB as f64
     }
 
     /// Returns byte count as exabytes.
@@ -561,7 +561,7 @@ mod tests {
     }
 
     #[test]
-    fn test_conversion() {
+    fn as_unit_conversions() {
         assert_eq!(ByteSize::gb(43).as_kib(), 41992187.5_f64);
         assert_eq!(ByteSize::mib(27).as_gb(), 0.028311552_f64);
         assert_eq!(ByteSize::tib(39).as_pib(), 0.042880953483264_f64);

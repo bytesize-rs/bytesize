@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Add `ByteSize::as_*()` methods to return equivalent sizes in KB, GiB, etc.
+
 ## 2.1.0
 
 - Support parsing and formatting exabytes (EB) & exbibytes (EiB).
