@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 2.2.0
+
 - Add `ByteSize::as_*()` methods to return equivalent sizes in KB, GiB, etc.
 
 ## 2.1.0
