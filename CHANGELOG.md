@@ -2,6 +2,20 @@
 
 ## Unreleased
 
+## [2.2.0](https://github.com/bytesize-rs/bytesize/compare/v2.1.0...v2.2.0) - 2025-11-10
+
+### Added
+
+- add custom unit conversions ([#111](https://github.com/bytesize-rs/bytesize/pull/111))
+
+### Other
+
+- fix release branch ref
+- add release-plz
+- *(deps)* bump codecov/codecov-action from 5.5.0 to 5.5.1 ([#116](https://github.com/bytesize-rs/bytesize/pull/116))
+- *(deps)* bump actions-rust-lang/setup-rust-toolchain ([#119](https://github.com/bytesize-rs/bytesize/pull/119))
+- *(deps)* bump taiki-e/install-action from 2.58.29 to 2.62.43 ([#120](https://github.com/bytesize-rs/bytesize/pull/120))
+
 - Add `ByteSize::as_*()` methods to return equivalent sizes in KB, GiB, etc.
 
 ## 2.1.0
