@@ -55,8 +55,9 @@ mod parse;
 #[cfg(feature = "serde")]
 mod serde;
 
-pub use crate::display::Display;
-use crate::display::Format;
+pub use self::display::Display;
+use self::display::Format;
+pub use self::parse::{Unit, UnitParseError};
 
 /// Number of bytes in 1 kilobyte.
 pub const KB: u64 = 1_000;
