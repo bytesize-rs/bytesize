@@ -1,5 +1,5 @@
-use alloc::{format, string::String};
-use core::str;
+use alloc::{borrow::ToOwned as _, format, string::String};
+use core::{fmt, str};
 
 use super::ByteSize;
 
@@ -50,21 +50,60 @@ where
     &s[(s.len() - offset)..]
 }
 
-enum Unit {
+/// Scale unit.
+///
+/// ```
+/// use bytesize::Unit;
+///
+/// assert_eq!(
+///     "GiB".parse::<Unit>().unwrap(),
+///     Unit::GibiByte,
+/// );
+///
+/// "gibibyte".parse::<Unit>().unwrap_err();
+/// ```
+#[non_exhaustive]
+#[derive(Debug, Clone, PartialEq)]
+pub enum Unit {
+    /// Single byte.
     Byte,
+
     // power of tens
+    /// Kilobyte (10^3 bytes).
     KiloByte,
+
+    /// Megabyte (10^6 bytes)
     MegaByte,
+
+    /// Gigabyte (10^9 bytes)
     GigaByte,
+
+    /// Terabyte (10^12 bytes)
     TeraByte,
+
+    /// Petabyte (10^15 bytes)
     PetaByte,
+
+    /// Exabyte (10^18 bytes)
     ExaByte,
+
     // power of twos
+    /// Kibibyte (2^10 bytes)
     KibiByte,
+
+    /// Mebibyte (2^20 bytes)
     MebiByte,
+
+    /// Gibibyte (2^30 bytes)
     GibiByte,
+
+    /// Tebibyte (2^40 bytes)
     TebiByte,
+
+    /// Pebibyte (2^50 bytes)
     PebiByte,
+
+    /// Exbibyte (2^60 bytes)
     ExbiByte,
 }
 
@@ -160,29 +199,74 @@ mod impl_ops {
 }
 
 impl str::FromStr for Unit {
-    type Err = String;
+    type Err = UnitParseError;
 
     fn from_str(unit: &str) -> Result<Self, Self::Err> {
-        match unit.to_lowercase().as_str() {
-            "b" => Ok(Self::Byte),
-            // power of tens
-            "k" | "kb" => Ok(Self::KiloByte),
-            "m" | "mb" => Ok(Self::MegaByte),
-            "g" | "gb" => Ok(Self::GigaByte),
-            "t" | "tb" => Ok(Self::TeraByte),
-            "p" | "pb" => Ok(Self::PetaByte),
-            "e" | "eb" => Ok(Self::ExaByte),
-            // power of twos
-            "ki" | "kib" => Ok(Self::KibiByte),
-            "mi" | "mib" => Ok(Self::MebiByte),
-            "gi" | "gib" => Ok(Self::GibiByte),
-            "ti" | "tib" => Ok(Self::TebiByte),
-            "pi" | "pib" => Ok(Self::PebiByte),
-            "ei" | "eib" => Ok(Self::ExbiByte),
-            _ => Err(format!("couldn't parse unit of {unit:?}")),
+        match () {
+            _ if unit.eq_ignore_ascii_case("b") => Ok(Self::Byte),
+            _ if unit.eq_ignore_ascii_case("k") | unit.eq_ignore_ascii_case("kb") => {
+                Ok(Self::KiloByte)
+            }
+            _ if unit.eq_ignore_ascii_case("m") | unit.eq_ignore_ascii_case("mb") => {
+                Ok(Self::MegaByte)
+            }
+            _ if unit.eq_ignore_ascii_case("g") | unit.eq_ignore_ascii_case("gb") => {
+                Ok(Self::GigaByte)
+            }
+            _ if unit.eq_ignore_ascii_case("t") | unit.eq_ignore_ascii_case("tb") => {
+                Ok(Self::TeraByte)
+            }
+            _ if unit.eq_ignore_ascii_case("p") | unit.eq_ignore_ascii_case("pb") => {
+                Ok(Self::PetaByte)
+            }
+            _ if unit.eq_ignore_ascii_case("e") | unit.eq_ignore_ascii_case("eb") => {
+                Ok(Self::ExaByte)
+            }
+            _ if unit.eq_ignore_ascii_case("ki") | unit.eq_ignore_ascii_case("kib") => {
+                Ok(Self::KibiByte)
+            }
+            _ if unit.eq_ignore_ascii_case("mi") | unit.eq_ignore_ascii_case("mib") => {
+                Ok(Self::MebiByte)
+            }
+            _ if unit.eq_ignore_ascii_case("gi") | unit.eq_ignore_ascii_case("gib") => {
+                Ok(Self::GibiByte)
+            }
+            _ if unit.eq_ignore_ascii_case("ti") | unit.eq_ignore_ascii_case("tib") => {
+                Ok(Self::TebiByte)
+            }
+            _ if unit.eq_ignore_ascii_case("pi") | unit.eq_ignore_ascii_case("pib") => {
+                Ok(Self::PebiByte)
+            }
+            _ if unit.eq_ignore_ascii_case("ei") | unit.eq_ignore_ascii_case("eib") => {
+                Ok(Self::ExbiByte)
+            }
+            _ => Err(UnitParseError(to_string_truncate(unit))),
         }
     }
 }
+
+fn to_string_truncate(unit: &str) -> String {
+    const MAX_UNIT_LEN: usize = 3;
+
+    if unit.len() > MAX_UNIT_LEN {
+        format!("{unit}...")
+    } else {
+        unit.to_owned()
+    }
+}
+
+/// Error returned when parsing a [`Unit`] fails.
+#[derive(Debug)]
+pub struct UnitParseError(String);
+
+impl fmt::Display for UnitParseError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "Failed to parse unit \"{}\"", self.0)
+    }
+}
+
+#[cfg(feature = "std")]
+impl std::error::Error for UnitParseError {}
 
 #[cfg(test)]
 mod tests {
