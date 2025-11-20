@@ -1,7 +1,7 @@
 [package]
 name = "bytesize"
 description = "Semantic wrapper for byte count representations"
-version = "2.2.0"
+version = "2.3.0"
 authors = [
     "Hyunsik Choi <hyunsik.choi@gmail.com>",
     "MrCroxx <mrcroxx@outlook.com>",
