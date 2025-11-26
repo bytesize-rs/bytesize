@@ -245,11 +245,24 @@ impl str::FromStr for Unit {
     }
 }
 
+/// Safely truncates
 fn to_string_truncate(unit: &str) -> String {
     const MAX_UNIT_LEN: usize = 3;
 
     if unit.len() > MAX_UNIT_LEN {
-        format!("{unit}...")
+        // TODO(MSRV 1.91): use ceil_char_boundary
+
+        if unit.is_char_boundary(3) {
+            format!("{}...", &unit[..3])
+        } else if unit.is_char_boundary(4) {
+            format!("{}...", &unit[..4])
+        } else if unit.is_char_boundary(5) {
+            format!("{}...", &unit[..5])
+        } else if unit.is_char_boundary(6) {
+            format!("{}...", &unit[..6])
+        } else {
+            unreachable!("char boundary will be within 4 bytes")
+        }
     } else {
         unit.to_owned()
     }
@@ -273,6 +286,17 @@ mod tests {
     use alloc::string::ToString as _;
 
     use super::*;
+
+    #[test]
+    fn truncating_error_strings() {
+        assert_eq!("", to_string_truncate(""));
+        assert_eq!("b", to_string_truncate("b"));
+        assert_eq!("ob", to_string_truncate("ob"));
+        assert_eq!("foo", to_string_truncate("foo"));
+
+        assert_eq!("foo...", to_string_truncate("foob"));
+        assert_eq!("foo...", to_string_truncate("foobar"));
+    }
 
     #[test]
     fn when_ok() {
