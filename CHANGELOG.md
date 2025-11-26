@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Fix unit truncation in error strings.
+
 ## 2.3.0
 
 - Add `Unit` enum.
