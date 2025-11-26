@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 2.3.1
+
 - Fix unit truncation in error strings.
 
 ## 2.3.0
