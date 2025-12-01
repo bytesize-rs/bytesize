@@ -50,7 +50,7 @@ jobs:
           target: thumbv6m-none-eabi
 
       - name: Install just, nextest
-        uses: taiki-e/install-action@v2.62.43
+        uses: taiki-e/install-action@v2.62.60
         with:
           tool: just,nextest
 
