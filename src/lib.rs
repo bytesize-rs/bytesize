@@ -43,21 +43,27 @@
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
+#[cfg(feature = "alloc")]
 extern crate alloc;
 
+#[cfg(feature = "alloc")]
 use alloc::string::ToString as _;
-use core::{fmt, ops};
+#[cfg(feature = "alloc")]
+use core::fmt;
+use core::ops;
 
 #[cfg(feature = "arbitrary")]
 mod arbitrary;
 mod display;
 mod parse;
-#[cfg(feature = "serde")]
+#[cfg(all(feature = "alloc", feature = "serde"))]
 mod serde;
 
 pub use self::display::Display;
 use self::display::Format;
-pub use self::parse::{Unit, UnitParseError};
+pub use self::parse::Unit;
+#[cfg(feature = "alloc")]
+pub use self::parse::UnitParseError;
 
 /// Number of bytes in 1 kilobyte.
 pub const KB: u64 = 1_000;
@@ -331,6 +337,7 @@ impl ByteSize {
     }
 }
 
+#[cfg(feature = "alloc")]
 impl fmt::Display for ByteSize {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let display = self.display();
@@ -344,6 +351,7 @@ impl fmt::Display for ByteSize {
     }
 }
 
+#[cfg(feature = "alloc")]
 impl fmt::Debug for ByteSize {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{} ({} bytes)", self, self.0)
@@ -471,6 +479,7 @@ where
 }
 
 #[cfg(test)]
+#[cfg(feature = "alloc")]
 mod property_tests {
     use alloc::string::{String, ToString as _};
 
@@ -509,6 +518,7 @@ mod property_tests {
 
 #[cfg(test)]
 mod tests {
+    #[cfg(feature = "alloc")]
     use alloc::format;
 
     use super::*;
@@ -571,11 +581,13 @@ mod tests {
         assert_eq!(2.613772153284117, ByteSize::b(2873872874893).as_tib());
     }
 
+    #[cfg(feature = "alloc")]
     #[track_caller]
     fn assert_display(expected: &str, b: ByteSize) {
         assert_eq!(expected, format!("{b}"));
     }
 
+    #[cfg(feature = "alloc")]
     #[test]
     fn test_display() {
         assert_display("215 B", ByteSize::b(215));
@@ -588,6 +600,7 @@ mod tests {
         assert_display("15.0 EiB", ByteSize::eib(15));
     }
 
+    #[cfg(feature = "alloc")]
     #[test]
     fn test_display_alignment() {
         assert_eq!("|357 B     |", format!("|{:10}|", ByteSize(357)));
@@ -600,6 +613,7 @@ mod tests {
         assert_eq!("|--357 B---|", format!("|{:-^10}|", ByteSize(357)));
     }
 
+    #[cfg(feature = "alloc")]
     #[test]
     fn test_default() {
         assert_eq!(ByteSize::b(0), ByteSize::default());

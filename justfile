@@ -48,9 +48,12 @@ test toolchain="":
 # Downgrade dev-dependencies necessary to run MSRV checks/tests.
 [private]
 downgrade-for-msrv:
-    cargo update -p=divan --precise=0.1.15
-    cargo update -p=clap --precise=4.3.24
-    cargo update -p=clap_lex --precise=0.5.0
+    cargo update -p=divan --precise=0.1.15 # next ver: 1.80
+    cargo update -p=clap --precise=4.3.24 # next ver: 1.74
+    cargo update -p=clap_lex --precise=0.5.0 # next ver: 1.74
+    cargo update -p=quickcheck --precise=1.0.3 # next ver: 1.85
+    cargo update -p=zmij --precise=1.0.19 # next ver: 1.71
+    cargo update -p=unicode-ident --precise=1.0.22 # next ver: 1.71
 
 # Test workspace using MSRV.
 [group("test")]

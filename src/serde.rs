@@ -86,11 +86,11 @@ mod tests {
         let s = serde_json::from_str::<S>(r#"{ "x": 1048576 }"#).unwrap();
         assert_eq!(s.x, "1 MiB".parse::<ByteSize>().unwrap());
 
-        let s = toml::from_str::<S>(r#"x = "2.5 MiB""#).unwrap();
+        let s = serde_json::from_str::<S>(r#"{ "x": "2.5 MiB" }"#).unwrap();
         assert_eq!(s.x, "2.5 MiB".parse::<ByteSize>().unwrap());
 
         // i64 MAX
-        let s = toml::from_str::<S>(r#"x = "9223372036854775807""#).unwrap();
+        let s = serde_json::from_str::<S>(r#"{ "x": 9223372036854775807 }"#).unwrap();
         assert_eq!(s.x, "9223372036854775807".parse::<ByteSize>().unwrap());
     }
 
