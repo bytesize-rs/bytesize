@@ -67,7 +67,8 @@ impl Format {
 ///     ByteSize::kb(42).display().si_short().to_string(),
 /// );
 /// ```
-#[derive(Debug, Clone)]
+#[derive(Clone)]
+#[cfg_attr(feature = "alloc", derive(Debug))]
 pub struct Display {
     pub(crate) byte_size: ByteSize,
     pub(crate) format: Format,
@@ -184,6 +185,7 @@ fn ideal_unit_std(size: f64, unit_base: f64) -> usize {
     }
 }
 
+#[cfg(feature = "alloc")]
 #[cfg(test)]
 mod tests {
     use alloc::{format, string::ToString as _};

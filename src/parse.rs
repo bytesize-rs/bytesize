@@ -1,8 +1,12 @@
+#[cfg(feature = "alloc")]
 use alloc::{borrow::ToOwned as _, format, string::String};
+#[cfg(feature = "alloc")]
 use core::{fmt, str};
 
+#[cfg(feature = "alloc")]
 use super::ByteSize;
 
+#[cfg(feature = "alloc")]
 impl str::FromStr for ByteSize {
     type Err = String;
 
@@ -26,6 +30,7 @@ impl str::FromStr for ByteSize {
     }
 }
 
+#[cfg(feature = "alloc")]
 fn take_while<P>(s: &str, mut predicate: P) -> &str
 where
     P: FnMut(char) -> bool,
@@ -38,6 +43,7 @@ where
     &s[..offset]
 }
 
+#[cfg(feature = "alloc")]
 fn skip_while<P>(s: &str, mut predicate: P) -> &str
 where
     P: FnMut(char) -> bool,
@@ -198,6 +204,7 @@ mod impl_ops {
     }
 }
 
+#[cfg(feature = "alloc")]
 impl str::FromStr for Unit {
     type Err = UnitParseError;
 
@@ -246,6 +253,7 @@ impl str::FromStr for Unit {
 }
 
 /// Safely truncates
+#[cfg(feature = "alloc")]
 fn to_string_truncate(unit: &str) -> String {
     const MAX_UNIT_LEN: usize = 3;
 
@@ -269,9 +277,11 @@ fn to_string_truncate(unit: &str) -> String {
 }
 
 /// Error returned when parsing a [`Unit`] fails.
+#[cfg(feature = "alloc")]
 #[derive(Debug)]
 pub struct UnitParseError(String);
 
+#[cfg(feature = "alloc")]
 impl fmt::Display for UnitParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "Failed to parse unit \"{}\"", self.0)
@@ -282,6 +292,7 @@ impl fmt::Display for UnitParseError {
 impl std::error::Error for UnitParseError {}
 
 #[cfg(test)]
+#[cfg(feature = "alloc")]
 mod tests {
     use alloc::string::ToString as _;
 

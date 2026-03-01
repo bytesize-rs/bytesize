@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Add support for `no_alloc` targets.
+
 ## 2.3.1
 
 - Fix unit truncation in error strings.
