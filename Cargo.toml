@@ -12,7 +12,7 @@ categories = ["development-tools", "filesystem", "no-std"]
 repository = "https://github.com/bytesize-rs/bytesize"
 license = "Apache-2.0"
 edition = "2021"
-rust-version = "1.70"
+rust-version = "1.76"
 
 [package.metadata.cargo_check_external_types]
 allowed_external_types = ["arbitrary::*", "serde_core::*"]
