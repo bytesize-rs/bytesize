@@ -21,7 +21,7 @@ env:
 jobs:
   read_msrv:
     name: Read MSRV
-    uses: actions-rust-lang/msrv/.github/workflows/msrv.yml@v0.1.0
+    uses: actions-rust-lang/msrv/.github/workflows/msrv.yml@v0.1.1
 
   rust:
     needs: read_msrv
