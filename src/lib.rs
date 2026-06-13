@@ -46,7 +46,7 @@
 extern crate alloc;
 
 use alloc::string::ToString as _;
-use core::{fmt, ops};
+use core::{fmt, iter, ops};
 
 #[cfg(feature = "arbitrary")]
 mod arbitrary;
@@ -391,6 +391,24 @@ impl ops::AddAssign<ByteSize> for ByteSize {
     }
 }
 
+impl iter::Sum<ByteSize> for ByteSize {
+    fn sum<I>(iter: I) -> Self
+    where
+        I: Iterator<Item = ByteSize>,
+    {
+        iter.fold(Self::default(), ops::Add::add)
+    }
+}
+
+impl<'a> iter::Sum<&'a ByteSize> for ByteSize {
+    fn sum<I>(iter: I) -> Self
+    where
+        I: Iterator<Item = &'a ByteSize>,
+    {
+        iter.copied().sum()
+    }
+}
+
 impl<T> ops::Add<T> for ByteSize
 where
     T: Into<u64>,
@@ -549,6 +567,21 @@ mod tests {
         x += 10u16;
         x += 1u8;
         assert_eq!(x.as_u64(), 3_000_011);
+    }
+
+    #[test]
+    fn test_sum() {
+        let sizes = [ByteSize::kb(1), ByteSize::mb(1), ByteSize::mib(1)];
+
+        assert_eq!(
+            sizes.into_iter().sum::<ByteSize>(),
+            ByteSize::b(KB + MB + MIB)
+        );
+        assert_eq!(sizes.iter().sum::<ByteSize>(), ByteSize::b(KB + MB + MIB));
+        assert_eq!(
+            core::iter::empty::<ByteSize>().sum::<ByteSize>(),
+            ByteSize::b(0)
+        );
     }
 
     #[test]
