@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 2.4.0
+
 - Implement `Sum` for `ByteSize`.
 - Minimum supported Rust version (MSRV) is now 1.85.
 
