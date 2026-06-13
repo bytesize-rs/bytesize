@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 2.4.1
+
+- No significant changes since `2.4.0`.
+
 ## 2.4.0
 
 - Implement `Sum` for `ByteSize`.
