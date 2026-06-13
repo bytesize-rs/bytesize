@@ -21,7 +21,7 @@ env:
 jobs:
   read_msrv:
     name: Read MSRV
-    uses: actions-rust-lang/msrv/.github/workflows/msrv.yml@v0.1.1
+    uses: actions-rust-lang/msrv/.github/workflows/msrv.yml@b95a3a81b0efee6438b858b41a84aff627e01351 # v0.1.1
 
   rust:
     needs: read_msrv
@@ -41,16 +41,16 @@ jobs:
     runs-on: ${{ matrix.os.runner }}
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
 
       - name: Install Rust (${{ matrix.toolchain.name }})
-        uses: actions-rust-lang/setup-rust-toolchain@v1.16.0
+        uses: actions-rust-lang/setup-rust-toolchain@2b1f5e9b395427c92ee4e3331786ca3c37afe2d7 # v1.16.0
         with:
           toolchain: ${{ matrix.toolchain.version }}
           target: thumbv6m-none-eabi
 
       - name: Install just, nextest
-        uses: taiki-e/install-action@v2.75.27
+        uses: taiki-e/install-action@7769b73c2ec98c38dfcf2e18c83cfd4880c038c1 # v2.75.27
         with:
           tool: just,nextest
 
