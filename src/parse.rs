@@ -15,6 +15,14 @@ impl str::FromStr for ByteSize {
             Ok(v) => {
                 let suffix = skip_while(&value[number.len()..], char::is_whitespace);
                 match suffix.parse::<Unit>() {
+                    // Use exact integer arithmetic when the number has no
+                    // fractional part. `f64` only has a 53-bit mantissa, so byte
+                    // counts at or above 2^53 would otherwise be rounded (e.g.
+                    // "9007199254740993B" parsed to 9007199254740992).
+                    Ok(u) if !number.contains('.') => match number.parse::<u64>() {
+                        Ok(n) => Ok(Self(n.saturating_mul(u.factor()))),
+                        Err(_) => Ok(Self((v * u) as u64)),
+                    },
                     Ok(u) => Ok(Self((v * u) as u64)),
                     Err(error) => Err(format!(
                         "couldn't parse {suffix:?} into a known SI unit, {error}"
@@ -322,6 +330,20 @@ mod tests {
         assert_eq!(parse("8 PB"), 8 * Unit::PetaByte);
         assert_eq!(parse("8P"), 8 * Unit::PetaByte);
         assert_eq!(parse("12 PiB"), 12 * Unit::PebiByte);
+    }
+
+    #[test]
+    fn large_integer_byte_counts_are_exact() {
+        // shortcut for writing test cases
+        fn parse(s: &str) -> u64 {
+            s.parse::<ByteSize>().unwrap().0
+        }
+
+        // 2^53 + 1 is not exactly representable as an `f64`, so the unit-suffix
+        // parsing path must not round it down. Regression test for the
+        // `f64`-based parsing path.
+        assert_eq!(parse("9007199254740993B"), 9_007_199_254_740_993);
+        assert_eq!(parse("9007199254740993"), parse("9007199254740993B"));
     }
 
     #[test]
