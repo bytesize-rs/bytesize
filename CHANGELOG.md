@@ -4,7 +4,7 @@
 
 ## 2.4.2
 
-- No significant changes since `2.4.1`.
+- Improve accuracy of parsing large non-decimal byte count strings.
 
 ## 2.4.1
 
