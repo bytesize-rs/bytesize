@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 2.4.2
+
+- No significant changes since `2.4.1`.
+
 ## 2.4.1
 
 - Fix rounding error near power-of-unit boundaries.
