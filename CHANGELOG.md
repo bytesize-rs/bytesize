@@ -4,7 +4,7 @@
 
 ## 2.4.1
 
-- No significant changes since `2.4.0`.
+- Fix rounding error near power-of-unit boundaries.
 
 ## 2.4.0
 
