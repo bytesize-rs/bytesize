@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 2.4.2
+
+- Improve accuracy of parsing large non-decimal byte count strings.
+
 ## 2.4.1
 
 - Fix rounding error near power-of-unit boundaries.
