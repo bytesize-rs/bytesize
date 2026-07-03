@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 2.4.1
+
+- Fix rounding error near power-of-unit boundaries.
+
 ## 2.4.0
 
 - Implement `Sum` for `ByteSize`.
