@@ -136,7 +136,7 @@ impl fmt::Display for Display {
             let size = bytes as f64;
 
             #[cfg(feature = "std")]
-            let exp = ideal_unit_std(size, unit_base);
+            let exp = ideal_unit_std(size, unit, unit_base);
 
             #[cfg(not(feature = "std"))]
             let exp = ideal_unit_no_std(size, unit);
@@ -175,13 +175,25 @@ fn ideal_unit_no_std(size: f64, unit: u64) -> usize {
 
 #[cfg(feature = "std")]
 #[allow(dead_code)] // used in std contexts
-fn ideal_unit_std(size: f64, unit_base: f64) -> usize {
-    assert!(size.ln() >= unit_base, "only called when bytes >= unit");
+fn ideal_unit_std(size: f64, unit: u64, unit_base: f64) -> usize {
+    assert!(size >= unit as f64, "only called when bytes >= unit");
 
-    match (size.ln() / unit_base) as usize {
-        0 => unreachable!(),
-        e => e,
+    // `ln()` is a fast approximation, but it's not precise enough to trust at power-of-`unit`
+    // boundaries: `f64::ln` can round such that `size.ln() / unit_base` lands one exponent above
+    // or below the correct value (see #142), which previously could underflow `exp - 1` and panic,
+    // or silently pick the wrong unit prefix. Nudge the approximation to the exact boundary using
+    // integer-exact `powi` checks, matching the (slower but exact) loop in `ideal_unit_no_std`.
+    let unit = unit as f64;
+    let mut exp = ((size.ln() / unit_base) as isize).max(1);
+
+    while exp > 1 && size / unit.powi(exp as i32 - 1) < unit {
+        exp -= 1;
     }
+    while size / unit.powi(exp as i32) >= unit {
+        exp += 1;
+    }
+
+    exp as usize
 }
 
 #[cfg(test)]
@@ -200,7 +212,7 @@ mod tests {
 
             let size = bytes.0 as f64;
 
-            ideal_unit_std(size, crate::LN_KIB) == ideal_unit_no_std(size, crate::KIB)
+            ideal_unit_std(size, crate::KIB, crate::LN_KIB) == ideal_unit_no_std(size, crate::KIB)
         }
 
         #[test]
@@ -211,8 +223,66 @@ mod tests {
 
             let size = bytes.0 as f64;
 
-            ideal_unit_std(size, crate::LN_KB) == ideal_unit_no_std(size, crate::KB)
+            ideal_unit_std(size, crate::KB, crate::LN_KB) == ideal_unit_no_std(size, crate::KB)
         }
+    }
+
+    // Regression test for #142 / the `std` vs `no_std` display divergence: `f64::ln()` isn't
+    // precise enough to trust right at a power-of-`unit` boundary, so `ideal_unit_std` used to
+    // disagree with the exact, loop-based `ideal_unit_no_std` for sizes just below 1024^5 bytes
+    // (and the equivalent 1000^5 boundary for SI units) — previously "1.0 PiB" under the `std`
+    // feature vs "1024.0 TiB" without it, for the exact same byte count.
+    #[cfg(feature = "std")]
+    #[test]
+    fn ideal_unit_std_matches_no_std_near_pebi_boundary() {
+        for bytes in [
+            1_125_899_906_842_621u64, // 1024^5 - 3
+            1_125_899_906_842_622,    // 1024^5 - 2
+            1_125_899_906_842_623,    // 1024^5 - 1
+            1_125_899_906_842_624,    // 1024^5 exactly
+        ] {
+            let size = bytes as f64;
+            assert_eq!(
+                ideal_unit_std(size, crate::KIB, crate::LN_KIB),
+                ideal_unit_no_std(size, crate::KIB),
+                "mismatch at {bytes} bytes (IEC)",
+            );
+        }
+
+        for bytes in [
+            999_999_999_999_996u64, // 1000^5 - 4
+            999_999_999_999_997,    // 1000^5 - 3
+            999_999_999_999_998,    // 1000^5 - 2
+            999_999_999_999_999,    // 1000^5 - 1
+            1_000_000_000_000_000,  // 1000^5 exactly
+        ] {
+            let size = bytes as f64;
+            assert_eq!(
+                ideal_unit_std(size, crate::KB, crate::LN_KB),
+                ideal_unit_no_std(size, crate::KB),
+                "mismatch at {bytes} bytes (SI)",
+            );
+        }
+    }
+
+    #[test]
+    fn display_matches_just_below_pebi_boundary() {
+        assert_eq!(
+            "1024.0 TiB",
+            Display {
+                byte_size: ByteSize(1_125_899_906_842_623),
+                format: Format::Iec,
+            }
+            .to_string()
+        );
+        assert_eq!(
+            "1.0 PiB",
+            Display {
+                byte_size: ByteSize(1_125_899_906_842_624),
+                format: Format::Iec,
+            }
+            .to_string()
+        );
     }
 
     #[test]
