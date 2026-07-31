@@ -9,6 +9,15 @@
 //!   and "521TiB".
 //! - Serde support for binary and human-readable deserializers like JSON.
 //!
+//! # Feature flags
+//!
+//! - `std` (default): Enables the `alloc` feature and standard library optimizations.
+//! - `alloc`: Enables parsing and formatting.
+//! - `arbitrary`: Implements `arbitrary::Arbitrary` for [`ByteSize`].
+//! - `serde`: Enables `alloc` and implements serialization and deserialization for [`ByteSize`].
+//!
+//! Disable the default features to use only the core data types, conversions, and constants.
+//!
 //! # Examples
 //!
 //! Construction using SI or IEC helpers.
@@ -43,21 +52,28 @@
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
+#[cfg(feature = "alloc")]
 extern crate alloc;
 
+#[cfg(feature = "alloc")]
 use alloc::string::ToString as _;
 use core::{fmt, iter, ops};
 
 #[cfg(feature = "arbitrary")]
 mod arbitrary;
+#[cfg(feature = "alloc")]
 mod display;
 mod parse;
 #[cfg(feature = "serde")]
 mod serde;
 
+#[cfg(feature = "alloc")]
 pub use self::display::Display;
+#[cfg(feature = "alloc")]
 use self::display::Format;
-pub use self::parse::{Unit, UnitParseError};
+pub use self::parse::Unit;
+#[cfg(feature = "alloc")]
+pub use self::parse::UnitParseError;
 
 /// Number of bytes in 1 kilobyte.
 pub const KB: u64 = 1_000;
@@ -88,17 +104,21 @@ pub const EIB: u64 = 1_152_921_504_606_846_976;
 /// IEC (binary) units.
 ///
 /// See <https://en.wikipedia.org/wiki/Kilobyte>.
+#[cfg(feature = "alloc")]
 const UNITS_IEC: &str = "KMGTPE";
 
 /// SI (decimal) units.
 ///
 /// See <https://en.wikipedia.org/wiki/Kilobyte>.
+#[cfg(feature = "alloc")]
 const UNITS_SI: &str = "kMGTPE";
 
 /// `ln(1024) ~= 6.931`
+#[cfg(feature = "alloc")]
 const LN_KIB: f64 = 6.931_471_805_599_453;
 
 /// `ln(1000) ~= 6.908`
+#[cfg(feature = "alloc")]
 const LN_KB: f64 = 6.907_755_278_982_137;
 
 /// Converts a quantity of kilobytes to bytes.
@@ -323,6 +343,7 @@ impl ByteSize {
     }
 
     /// Returns a formatting display wrapper.
+    #[cfg(feature = "alloc")]
     pub fn display(&self) -> Display {
         Display {
             byte_size: *self,
@@ -331,6 +352,7 @@ impl ByteSize {
     }
 }
 
+#[cfg(feature = "alloc")]
 impl fmt::Display for ByteSize {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let display = self.display();
@@ -346,7 +368,15 @@ impl fmt::Display for ByteSize {
 
 impl fmt::Debug for ByteSize {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{} ({} bytes)", self, self.0)
+        #[cfg(feature = "alloc")]
+        {
+            write!(f, "{} ({} bytes)", self, self.0)
+        }
+
+        #[cfg(not(feature = "alloc"))]
+        {
+            f.debug_tuple("ByteSize").field(&self.0).finish()
+        }
     }
 }
 
@@ -488,9 +518,9 @@ where
     }
 }
 
-#[cfg(test)]
+#[cfg(all(test, feature = "alloc"))]
 mod property_tests {
-    use alloc::string::{String, ToString as _};
+    use alloc::string::String;
 
     use super::*;
 
@@ -527,6 +557,7 @@ mod property_tests {
 
 #[cfg(test)]
 mod tests {
+    #[cfg(feature = "alloc")]
     use alloc::format;
 
     use super::*;
@@ -604,11 +635,13 @@ mod tests {
         assert_eq!(2.613772153284117, ByteSize::b(2873872874893).as_tib());
     }
 
+    #[cfg(feature = "alloc")]
     #[track_caller]
     fn assert_display(expected: &str, b: ByteSize) {
         assert_eq!(expected, format!("{b}"));
     }
 
+    #[cfg(feature = "alloc")]
     #[test]
     fn test_display() {
         assert_display("215 B", ByteSize::b(215));
@@ -621,6 +654,7 @@ mod tests {
         assert_display("15.0 EiB", ByteSize::eib(15));
     }
 
+    #[cfg(feature = "alloc")]
     #[test]
     fn test_display_alignment() {
         assert_eq!("|357 B     |", format!("|{:10}|", ByteSize(357)));
