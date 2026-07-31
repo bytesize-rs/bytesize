@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 2.5.0
+
 - Add support for targets without an allocator.
 
 ## 2.4.2
