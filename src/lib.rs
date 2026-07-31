@@ -518,48 +518,8 @@ where
     }
 }
 
-#[cfg(all(test, feature = "alloc"))]
-mod property_tests {
-    use alloc::string::String;
-
-    use super::*;
-
-    impl quickcheck::Arbitrary for ByteSize {
-        fn arbitrary(g: &mut quickcheck::Gen) -> Self {
-            Self(u64::arbitrary(g))
-        }
-    }
-
-    quickcheck::quickcheck! {
-        fn parsing_never_panics(size: String) -> bool {
-            let _ = size.parse::<ByteSize>();
-            true
-        }
-
-        fn to_string_never_blank(size: ByteSize) -> bool {
-            !size.to_string().is_empty()
-        }
-
-        fn to_string_never_large(size: ByteSize) -> bool {
-            size.to_string().len() < 11
-        }
-
-        fn string_round_trip(size: ByteSize) -> bool {
-            // currently fails on many inputs above the pebibyte level
-            if size > ByteSize::pib(1) {
-                return true;
-            }
-
-            size.to_string().parse::<ByteSize>().unwrap() == size
-        }
-    }
-}
-
 #[cfg(test)]
-mod tests {
-    #[cfg(feature = "alloc")]
-    use alloc::format;
-
+mod core_tests {
     use super::*;
 
     #[test]
@@ -635,13 +595,53 @@ mod tests {
         assert_eq!(2.613772153284117, ByteSize::b(2873872874893).as_tib());
     }
 
-    #[cfg(feature = "alloc")]
+    #[test]
+    fn test_default() {
+        assert_eq!(ByteSize::b(0), ByteSize::default());
+    }
+}
+
+#[cfg(all(test, feature = "alloc"))]
+mod alloc_tests {
+    use alloc::{format, string::String};
+
+    use super::*;
+
+    impl quickcheck::Arbitrary for ByteSize {
+        fn arbitrary(g: &mut quickcheck::Gen) -> Self {
+            Self(u64::arbitrary(g))
+        }
+    }
+
+    quickcheck::quickcheck! {
+        fn parsing_never_panics(size: String) -> bool {
+            let _ = size.parse::<ByteSize>();
+            true
+        }
+
+        fn to_string_never_blank(size: ByteSize) -> bool {
+            !size.to_string().is_empty()
+        }
+
+        fn to_string_never_large(size: ByteSize) -> bool {
+            size.to_string().len() < 11
+        }
+
+        fn string_round_trip(size: ByteSize) -> bool {
+            // currently fails on many inputs above the pebibyte level
+            if size > ByteSize::pib(1) {
+                return true;
+            }
+
+            size.to_string().parse::<ByteSize>().unwrap() == size
+        }
+    }
+
     #[track_caller]
     fn assert_display(expected: &str, b: ByteSize) {
         assert_eq!(expected, format!("{b}"));
     }
 
-    #[cfg(feature = "alloc")]
     #[test]
     fn test_display() {
         assert_display("215 B", ByteSize::b(215));
@@ -654,7 +654,6 @@ mod tests {
         assert_display("15.0 EiB", ByteSize::eib(15));
     }
 
-    #[cfg(feature = "alloc")]
     #[test]
     fn test_display_alignment() {
         assert_eq!("|357 B     |", format!("|{:10}|", ByteSize(357)));
@@ -665,10 +664,5 @@ mod tests {
         assert_eq!("|-----357 B|", format!("|{:->10}|", ByteSize(357)));
         assert_eq!("|357 B-----|", format!("|{:-<10}|", ByteSize(357)));
         assert_eq!("|--357 B---|", format!("|{:-^10}|", ByteSize(357)));
-    }
-
-    #[test]
-    fn test_default() {
-        assert_eq!(ByteSize::b(0), ByteSize::default());
     }
 }
