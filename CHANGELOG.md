@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Add display styles for IEC and SI bit units.
+
 ## 2.5.0
 
 - Honor precision when a width is set with formatting args.

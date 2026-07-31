@@ -2,6 +2,8 @@ use core::{fmt, write};
 
 use crate::ByteSize;
 
+const BITS_PER_BYTE: u64 = 8;
+
 /// Format / style to use when displaying a [`ByteSize`].
 #[derive(Debug, Clone, Copy)]
 pub(crate) enum Format {
@@ -9,6 +11,8 @@ pub(crate) enum Format {
     IecShort,
     Si,
     SiShort,
+    IecBits,
+    SiBits,
 }
 
 impl Format {
@@ -16,6 +20,8 @@ impl Format {
         match self {
             Format::Iec | Format::IecShort => crate::KIB,
             Format::Si | Format::SiShort => crate::KB,
+            Format::IecBits => crate::KIB,
+            Format::SiBits => crate::KB,
         }
     }
 
@@ -23,19 +29,21 @@ impl Format {
         match self {
             Format::Iec | Format::IecShort => crate::LN_KIB,
             Format::Si | Format::SiShort => crate::LN_KB,
+            Format::IecBits => crate::LN_KIB,
+            Format::SiBits => crate::LN_KB,
         }
     }
 
     fn unit_prefixes(self) -> &'static [u8] {
         match self {
-            Format::Iec | Format::IecShort => crate::UNITS_IEC.as_bytes(),
-            Format::Si | Format::SiShort => crate::UNITS_SI.as_bytes(),
+            Format::Iec | Format::IecShort | Format::IecBits => crate::UNITS_IEC.as_bytes(),
+            Format::Si | Format::SiShort | Self::SiBits => crate::UNITS_SI.as_bytes(),
         }
     }
 
     fn unit_separator(self) -> &'static str {
         match self {
-            Format::Iec | Format::Si => " ",
+            Format::Iec | Format::Si | Format::IecBits | Format::SiBits => " ",
             Format::IecShort | Format::SiShort => "",
         }
     }
@@ -45,7 +53,13 @@ impl Format {
             Format::Iec => "iB",
             Format::Si => "B",
             Format::IecShort | Format::SiShort => "",
+            Format::IecBits => "ib",
+            Format::SiBits => "b",
         }
+    }
+
+    fn is_bits(self) -> bool {
+        matches!(self, Format::IecBits | Format::SiBits)
     }
 }
 
@@ -115,11 +129,31 @@ impl Display {
         self.format = Format::SiShort;
         self
     }
+
+    /// Format as equivalent number of bits using IEC (binary) units.
+    ///
+    /// E.g., `12.3 Mib`.
+    #[must_use]
+    pub fn iec_bits(mut self) -> Self {
+        self.format = Format::IecBits;
+        self
+    }
+
+    /// Format as equivalent number of bits using SI (decimal) units.
+    ///
+    /// E.g., `12.3 Mb`.
+    #[must_use]
+    pub fn si_bits(mut self) -> Self {
+        self.format = Format::SiBits;
+        self
+    }
 }
 
 impl fmt::Display for Display {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let bytes = self.byte_size.as_u64();
+
+        let is_bits = self.format.is_bits();
 
         let unit = self.format.unit();
         #[allow(unused_variables)] // used in std contexts
@@ -130,10 +164,26 @@ impl fmt::Display for Display {
         let unit_suffix = self.format.unit_suffix();
         let precision = f.precision().unwrap_or(1);
 
-        if bytes < unit {
-            write!(f, "{bytes}{unit_separator}B")?;
+        let threshold = if is_bits {
+            unit.div_ceil(BITS_PER_BYTE)
         } else {
-            let size = bytes as f64;
+            unit
+        };
+
+        if bytes < threshold {
+            let value = if is_bits {
+                bytes * BITS_PER_BYTE
+            } else {
+                bytes
+            };
+
+            if is_bits {
+                write!(f, "{value}{unit_separator}b")?;
+            } else {
+                write!(f, "{value}{unit_separator}B")?;
+            }
+        } else {
+            let size = bytes as f64 * if is_bits { BITS_PER_BYTE as f64 } else { 1.0 };
 
             #[cfg(feature = "std")]
             let exp = ideal_unit_std(size, unit, unit_base);
@@ -199,6 +249,7 @@ fn ideal_unit_std(size: f64, unit: u64, unit_base: f64) -> usize {
 #[cfg(test)]
 mod tests {
     use alloc::{format, string::ToString as _};
+    use core::fmt::Write as _;
 
     use super::*;
 
@@ -222,6 +273,29 @@ mod tests {
             }
 
             let size = bytes.0 as f64;
+
+            ideal_unit_std(size, crate::KB, crate::LN_KB) == ideal_unit_no_std(size, crate::KB)
+        }
+
+        #[test]
+        fn ideal_unit_selection_std_no_std_iec_bits(bytes: ByteSize) -> bool {
+            if bytes.0 < 128 {
+                return true;
+            }
+
+            let size = bytes.0 as f64 * BITS_PER_BYTE as f64;
+
+            ideal_unit_std(size, crate::KIB, crate::LN_KIB)
+                == ideal_unit_no_std(size, crate::KIB)
+        }
+
+        #[test]
+        fn ideal_unit_selection_std_no_std_si_bits(bytes: ByteSize) -> bool {
+            if bytes.0 < 125 {
+                return true;
+            }
+
+            let size = bytes.0 as f64 * BITS_PER_BYTE as f64;
 
             ideal_unit_std(size, crate::KB, crate::LN_KB) == ideal_unit_no_std(size, crate::KB)
         }
@@ -285,6 +359,11 @@ mod tests {
         );
     }
 
+    #[track_caller]
+    fn assert_to_string(expected: &str, byte_size: ByteSize, format: Format) {
+        assert_eq!(expected, Display { byte_size, format }.to_string());
+    }
+
     #[test]
     fn to_string_iec() {
         let display = Display {
@@ -330,11 +409,6 @@ mod tests {
         assert_eq!("953.7M", display.to_string());
     }
 
-    #[track_caller]
-    fn assert_to_string(expected: &str, byte_size: ByteSize, format: Format) {
-        assert_eq!(expected, Display { byte_size, format }.to_string());
-    }
-
     #[test]
     fn test_to_string_as() {
         assert_to_string("215 B", ByteSize::b(215), Format::Iec);
@@ -363,6 +437,61 @@ mod tests {
 
         assert_to_string("540.9 PiB", ByteSize::pb(609), Format::Iec);
         assert_to_string("609.0 PB", ByteSize::pb(609), Format::Si);
+    }
+
+    #[test]
+    fn to_string_bits() {
+        assert_to_string("1016 b", ByteSize(127), Format::IecBits);
+        assert_to_string("1.0 Kib", ByteSize(128), Format::IecBits);
+        assert_to_string("992 b", ByteSize(124), Format::SiBits);
+        assert_to_string("1.0 kb", ByteSize(125), Format::SiBits);
+
+        assert_to_string("7.8 Kib", ByteSize::kb(1), Format::IecBits);
+        assert_to_string("8.0 kb", ByteSize::kb(1), Format::SiBits);
+        assert_to_string("128.0 Eib", ByteSize(u64::MAX), Format::IecBits);
+        assert_to_string("147.6 Eb", ByteSize(u64::MAX), Format::SiBits);
+    }
+
+    #[test]
+    fn display_bits_public_api() {
+        assert_eq!("1.0 Kib", ByteSize(128).display().iec_bits().to_string());
+        assert_eq!("1.0 kb", ByteSize(125).display().si_bits().to_string());
+    }
+
+    #[test]
+    fn display_propagates_write_errors() {
+        struct FailingWriter;
+
+        impl fmt::Write for FailingWriter {
+            fn write_str(&mut self, _: &str) -> fmt::Result {
+                Err(fmt::Error)
+            }
+        }
+
+        let mut writer = FailingWriter;
+
+        assert_eq!(
+            Err(fmt::Error),
+            write!(
+                writer,
+                "{}",
+                Display {
+                    byte_size: ByteSize(127),
+                    format: Format::IecBits,
+                },
+            ),
+        );
+        assert_eq!(
+            Err(fmt::Error),
+            write!(
+                writer,
+                "{}",
+                Display {
+                    byte_size: ByteSize(1),
+                    format: Format::Iec,
+                },
+            ),
+        );
     }
 
     #[test]

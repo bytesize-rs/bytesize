@@ -36,6 +36,8 @@
 //! assert_eq!("518.0 GiB", ByteSize::gib(518).display().iec().to_string());
 //! assert_eq!("556.2 GB", ByteSize::gib(518).display().si().to_string());
 //! assert_eq!("518.0G", ByteSize::gib(518).display().iec_short().to_string());
+//! assert_eq!("4.0 Kib", ByteSize::b(512).display().iec_bits().to_string());
+//! assert_eq!("4.1 kb", ByteSize::b(512).display().si_bits().to_string());
 //! ```
 //!
 //! Arithmetic operations are supported.
