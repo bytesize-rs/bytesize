@@ -1,6 +1,7 @@
 _list:
     @just --list
 
+toolchain := ""
 msrv := ```
     cargo metadata --format-version=1 \
     | jq -r 'first(.packages[] | select(.source == null and .rust_version)) | .rust_version' \
@@ -40,7 +41,7 @@ clippy:
 
 # Test workspace.
 [group("test")]
-test toolchain="":
+test:
     cargo {{ toolchain }} nextest run --workspace --no-default-features
     cargo {{ toolchain }} nextest run --workspace --no-default-features --features alloc
     cargo {{ toolchain }} nextest run --workspace --all-features
@@ -55,16 +56,17 @@ downgrade-for-msrv:
 
 # Test workspace using MSRV.
 [group("test")]
-test-msrv: downgrade-for-msrv (test msrv_rustup)
+test-msrv: downgrade-for-msrv
+    @just toolchain={{ msrv_rustup }} test
 
 # Test workspace and generate Codecov coverage file
 [group("test")]
-test-coverage-codecov toolchain="":
+test-coverage-codecov:
     cargo {{ toolchain }} llvm-cov --workspace --all-features --codecov --output-path codecov.json
 
 # Test workspace and generate LCOV coverage file
 [group("test")]
-test-coverage-lcov toolchain="":
+test-coverage-lcov:
     cargo {{ toolchain }} llvm-cov --workspace --all-features --lcov --output-path lcov.info
 
 # Build crate for a no-std target.
