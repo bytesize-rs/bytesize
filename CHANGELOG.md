@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 2.6.0
+
 - Add display styles for IEC and SI bit units.
 
 ## 2.5.0
