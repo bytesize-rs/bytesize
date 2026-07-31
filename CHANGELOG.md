@@ -2,7 +2,10 @@
 
 ## Unreleased
 
-- Add support for targets without an allocator.
+## 2.5.0
+
+- Honor precision when a width is set with formatting args.
+- Add `#[no_alloc]` support.
 
 ## 2.4.2
 
