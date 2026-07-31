@@ -361,7 +361,40 @@ impl fmt::Display for ByteSize {
             // allocation-free fast path for when no formatting options are specified
             fmt::Display::fmt(&display, f)
         } else {
-            f.pad(&display.to_string())
+            // `display.to_string()` renders at the default precision, and `f.pad`
+            // reinterprets the formatter's precision as a *maximum* width. Together
+            // they drop the requested precision and truncate the value mid-unit
+            // (e.g. `{:>12.5}` rendered "1.86328 GiB" as "1.9 G"). Render with the
+            // requested precision first, then apply only the width, fill, and align.
+            let content = match f.precision() {
+                Some(precision) => alloc::format!("{display:.precision$}"),
+                None => display.to_string(),
+            };
+
+            let padding = f
+                .width()
+                .unwrap_or(0)
+                .saturating_sub(content.chars().count());
+            if padding == 0 {
+                return f.write_str(&content);
+            }
+
+            let (left, right) = match f.align() {
+                Some(fmt::Alignment::Right) => (padding, 0),
+                Some(fmt::Alignment::Center) => (padding / 2, padding - padding / 2),
+                Some(fmt::Alignment::Left) | None => (0, padding),
+            };
+
+            let mut buf = [0u8; 4];
+            let fill = f.fill().encode_utf8(&mut buf);
+            for _ in 0..left {
+                f.write_str(fill)?;
+            }
+            f.write_str(&content)?;
+            for _ in 0..right {
+                f.write_str(fill)?;
+            }
+            Ok(())
         }
     }
 }
@@ -664,5 +697,18 @@ mod alloc_tests {
         assert_eq!("|-----357 B|", format!("|{:->10}|", ByteSize(357)));
         assert_eq!("|357 B-----|", format!("|{:-<10}|", ByteSize(357)));
         assert_eq!("|--357 B---|", format!("|{:-^10}|", ByteSize(357)));
+    }
+    #[test]
+    fn test_display_width_with_precision() {
+        let size = ByteSize::mib(1908);
+        // Precision is honored as decimal places even when a width is given, and
+        // the rendered value is never truncated to satisfy the precision.
+        assert_eq!("| 1.86328 GiB|", format!("|{size:>12.5}|"));
+        assert_eq!("|1.86328 GiB |", format!("|{size:<12.5}|"));
+        assert_eq!("|1.86328 GiB |", format!("|{size:12.5}|"));
+        assert_eq!("|--1.86328 GiB--|", format!("|{size:-^15.5}|"));
+        assert_eq!("|     2 GiB|", format!("|{size:>10.0}|"));
+        // Width narrower than the value leaves it intact instead of truncating.
+        assert_eq!("1.86328 GiB", format!("{size:3.5}"));
     }
 }
