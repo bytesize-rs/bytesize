@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Add support for targets without an allocator.
+
 ## 2.4.2
 
 - Improve accuracy of parsing large non-decimal byte count strings.
