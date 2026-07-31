@@ -56,7 +56,8 @@ downgrade-for-msrv:
 
 # Test workspace using MSRV.
 [group("test")]
-test-msrv: downgrade-for-msrv
+test-msrv:
+    @just toolchain={{ msrv_rustup }} downgrade-for-msrv
     @just toolchain={{ msrv_rustup }} test
 
 # Test workspace and generate Codecov coverage file
