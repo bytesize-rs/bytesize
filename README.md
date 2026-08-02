@@ -27,11 +27,11 @@ Features:
 ### Feature flags
 
 - `std` (default): Enables the `alloc` feature and standard library optimizations.
-- `alloc`: Enables parsing and formatting.
+- `alloc`: Enables allocator-backed integrations.
 - `arbitrary`: Implements `arbitrary::Arbitrary` for [`ByteSize`].
 - `serde`: Enables `alloc` and implements serialization and deserialization for [`ByteSize`].
 
-Disable the default features to use only the core data types, conversions, and constants.
+Parsing and formatting are available without default features and do not allocate.
 
 ### Examples
 

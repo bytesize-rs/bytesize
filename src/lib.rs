@@ -12,11 +12,11 @@
 //! # Feature flags
 //!
 //! - `std` (default): Enables the `alloc` feature and standard library optimizations.
-//! - `alloc`: Enables parsing and formatting.
+//! - `alloc`: Enables allocator-backed integrations.
 //! - `arbitrary`: Implements `arbitrary::Arbitrary` for [`ByteSize`].
 //! - `serde`: Enables `alloc` and implements serialization and deserialization for [`ByteSize`].
 //!
-//! Disable the default features to use only the core data types, conversions, and constants.
+//! Parsing and formatting are available without default features and do not allocate.
 //!
 //! # Examples
 //!
@@ -54,28 +54,21 @@
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
-#[cfg(feature = "alloc")]
+#[cfg(any(feature = "serde", test))]
 extern crate alloc;
 
-#[cfg(feature = "alloc")]
-use alloc::string::ToString as _;
 use core::{fmt, iter, ops};
 
 #[cfg(feature = "arbitrary")]
 mod arbitrary;
-#[cfg(feature = "alloc")]
 mod display;
 mod parse;
 #[cfg(feature = "serde")]
 mod serde;
 
-#[cfg(feature = "alloc")]
 pub use self::display::Display;
-#[cfg(feature = "alloc")]
 use self::display::Format;
-pub use self::parse::Unit;
-#[cfg(feature = "alloc")]
-pub use self::parse::UnitParseError;
+pub use self::parse::{ByteSizeParseError, Unit, UnitParseError};
 
 /// Number of bytes in 1 kilobyte.
 pub const KB: u64 = 1_000;
@@ -106,21 +99,17 @@ pub const EIB: u64 = 1_152_921_504_606_846_976;
 /// IEC (binary) units.
 ///
 /// See <https://en.wikipedia.org/wiki/Kilobyte>.
-#[cfg(feature = "alloc")]
 const UNITS_IEC: &str = "KMGTPE";
 
 /// SI (decimal) units.
 ///
 /// See <https://en.wikipedia.org/wiki/Kilobyte>.
-#[cfg(feature = "alloc")]
 const UNITS_SI: &str = "kMGTPE";
 
 /// `ln(1024) ~= 6.931`
-#[cfg(feature = "alloc")]
 const LN_KIB: f64 = 6.931_471_805_599_453;
 
 /// `ln(1000) ~= 6.908`
-#[cfg(feature = "alloc")]
 const LN_KB: f64 = 6.907_755_278_982_137;
 
 /// Converts a quantity of kilobytes to bytes.
@@ -345,7 +334,6 @@ impl ByteSize {
     }
 
     /// Returns a formatting display wrapper.
-    #[cfg(feature = "alloc")]
     pub fn display(&self) -> Display {
         Display {
             byte_size: *self,
@@ -354,31 +342,21 @@ impl ByteSize {
     }
 }
 
-#[cfg(feature = "alloc")]
 impl fmt::Display for ByteSize {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let display = self.display();
 
         if f.width().is_none() {
-            // allocation-free fast path for when no formatting options are specified
             fmt::Display::fmt(&display, f)
         } else {
-            // `display.to_string()` renders at the default precision, and `f.pad`
-            // reinterprets the formatter's precision as a *maximum* width. Together
-            // they drop the requested precision and truncate the value mid-unit
-            // (e.g. `{:>12.5}` rendered "1.86328 GiB" as "1.9 G"). Render with the
-            // requested precision first, then apply only the width, fill, and align.
-            let content = match f.precision() {
-                Some(precision) => alloc::format!("{display:.precision$}"),
-                None => display.to_string(),
-            };
-
-            let padding = f
-                .width()
-                .unwrap_or(0)
-                .saturating_sub(content.chars().count());
+            let mut counter = CharCounter::default();
+            match f.precision() {
+                Some(precision) => fmt::write(&mut counter, format_args!("{display:.precision$}"))?,
+                None => fmt::write(&mut counter, format_args!("{display}"))?,
+            }
+            let padding = f.width().unwrap_or(0).saturating_sub(counter.count);
             if padding == 0 {
-                return f.write_str(&content);
+                return fmt::Display::fmt(&display, f);
             }
 
             let (left, right) = match f.align() {
@@ -392,7 +370,7 @@ impl fmt::Display for ByteSize {
             for _ in 0..left {
                 f.write_str(fill)?;
             }
-            f.write_str(&content)?;
+            fmt::Display::fmt(&display, f)?;
             for _ in 0..right {
                 f.write_str(fill)?;
             }
@@ -401,17 +379,21 @@ impl fmt::Display for ByteSize {
     }
 }
 
+#[derive(Default)]
+struct CharCounter {
+    count: usize,
+}
+
+impl fmt::Write for CharCounter {
+    fn write_str(&mut self, value: &str) -> fmt::Result {
+        self.count = self.count.saturating_add(value.chars().count());
+        Ok(())
+    }
+}
+
 impl fmt::Debug for ByteSize {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        #[cfg(feature = "alloc")]
-        {
-            write!(f, "{} ({} bytes)", self, self.0)
-        }
-
-        #[cfg(not(feature = "alloc"))]
-        {
-            f.debug_tuple("ByteSize").field(&self.0).finish()
-        }
+        write!(f, "{} ({} bytes)", self, self.0)
     }
 }
 
@@ -636,9 +618,12 @@ mod core_tests {
     }
 }
 
-#[cfg(all(test, feature = "alloc"))]
+#[cfg(test)]
 mod alloc_tests {
-    use alloc::{format, string::String};
+    use alloc::{
+        format,
+        string::{String, ToString as _},
+    };
 
     use super::*;
 
