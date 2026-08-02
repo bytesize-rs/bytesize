@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Add no-alloc support.
+
 ## 2.7.0
 
 - Remove no-alloc support because it removed `ByteSize::display()` when default features were disabled.
