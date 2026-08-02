@@ -22,10 +22,9 @@ all-features = true
 
 [features]
 default = ["std"]
-alloc = []
-std = ["alloc"]
+std = []
 arbitrary = ["dep:arbitrary"]
-serde = ["alloc", "dep:serde_core"]
+serde = ["dep:serde_core"]
 
 [dependencies]
 arbitrary = { version = "1", optional = true }
@@ -41,11 +40,6 @@ toml = "1.1"
 [[bench]]
 name = "display"
 harness = false
-required-features = ["alloc"]
-
-[[example]]
-name = "ls"
-required-features = ["alloc"]
 
 [lints.rust]
 rust-2018-idioms = { level = "deny" }
