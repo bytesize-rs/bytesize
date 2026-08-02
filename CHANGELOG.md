@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Restore display support when default features are disabled.
+
 ## 2.6.0
 
 - Add display styles for IEC and SI bit units.
