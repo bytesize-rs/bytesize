@@ -36,14 +36,12 @@ update-readme:
 [group("lint")]
 clippy:
     cargo clippy --workspace --all-targets --no-default-features
-    cargo clippy --workspace --all-targets --no-default-features --features alloc
     cargo clippy --workspace --all-targets --all-features
 
 # Test workspace.
 [group("test")]
 test:
     cargo {{ toolchain }} nextest run --workspace --no-default-features
-    cargo {{ toolchain }} nextest run --workspace --no-default-features --features alloc
     cargo {{ toolchain }} nextest run --workspace --all-features
     cargo {{ toolchain }} test --doc --workspace --all-features
     RUSTDOCFLAGS="-D warnings" cargo {{ toolchain }} doc --workspace --no-deps --all-features
@@ -73,10 +71,6 @@ test-coverage-lcov:
 # Build crate for a no-std target.
 build-no-std:
     cargo build --target=thumbv6m-none-eabi --manifest-path=./ensure-no-std/Cargo.toml
-
-# Build crate for a no-alloc target.
-build-no-alloc:
-    cargo build --target=thumbv6m-none-eabi --manifest-path=./ensure-no-alloc/Cargo.toml
 
 # Document crates in workspace.
 [group("docs")]

@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Remove no-alloc support because it removed `ByteSize::display()` when default features were disabled.
+
 ## 2.6.0
 
 - Add display styles for IEC and SI bit units.

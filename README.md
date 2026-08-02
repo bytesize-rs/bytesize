@@ -18,20 +18,11 @@
 
 Features:
 
-- Pre-defined constants for various size units (e.g., B, KB, KiB, MB, MiB, ... EB, EiB).
+- Pre-defined constants for various size units (e.g., B, Kb, Kib, Mb, Mib, Gb, Gib, ... PB).
 - `ByteSize` type which presents size units convertible to different size units.
 - Arithmetic operations for `ByteSize`.
 - `FromStr` impl for `ByteSize`, allowing for parsing string size representations like "1.5KiB" and "521TiB".
 - Serde support for binary and human-readable deserializers like JSON.
-
-### Feature flags
-
-- `std` (default): Enables the `alloc` feature and standard library optimizations.
-- `alloc`: Enables parsing and formatting.
-- `arbitrary`: Implements `arbitrary::Arbitrary` for [`ByteSize`].
-- `serde`: Enables `alloc` and implements serialization and deserialization for [`ByteSize`].
-
-Disable the default features to use only the core data types, conversions, and constants.
 
 ### Examples
 
