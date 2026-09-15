@@ -1,5 +1,5 @@
 [package]
-name = "ensure-no-std"
+name = "ensure-no-alloc"
 version = "0.1.0"
 publish = false
 edition = "2018"
@@ -11,4 +11,4 @@ panic = "abort"
 panic = "abort"
 
 [dependencies]
-bytesize = { path = "..", default-features = false, features = ["alloc"] }
+bytesize = { path = "..", default-features = false }
