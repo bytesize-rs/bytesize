@@ -35,6 +35,12 @@ impl str::FromStr for ByteSize {
 ///
 /// `number` must consist of ASCII digits with at most one `.`.
 fn mul_decimal(number: &str, factor: u64) -> u64 {
+    debug_assert!(
+        number.bytes().all(|b| b.is_ascii_digit() || b == b'.')
+            && number.bytes().filter(|&b| b == b'.').count() <= 1,
+        "expected ASCII digits with at most one `.`, got {number:?}",
+    );
+
     let (whole, frac) = number.split_once('.').unwrap_or((number, ""));
 
     let whole_bytes = whole
@@ -410,7 +416,12 @@ mod tests {
 
     quickcheck::quickcheck! {
         #[test]
-        fn mul_decimal_matches_exact_arithmetic(whole: u32, frac: u32, unit: u8) -> bool {
+        fn mul_decimal_matches_exact_arithmetic(
+            whole: u32,
+            frac: u32,
+            leading_zeros: u8,
+            unit: u8
+        ) -> bool {
             const FACTORS: [u64; 13] = [
                 1,
                 crate::KB,
@@ -428,11 +439,14 @@ mod tests {
             ];
             let factor = FACTORS[usize::from(unit) % FACTORS.len()];
 
-            let frac_digits = frac.to_string();
+            // Pad with leading zeros so fractions like `.05` are covered too.
+            let frac_digits = format!("{}{frac}", "0".repeat(usize::from(leading_zeros % 8)));
             let number = format!("{whole}.{frac_digits}");
 
+            // `whole * factor` is an integer, so it can be split out of the floor.
             let scale = 10_u128.pow(frac_digits.len() as u32);
-            let exact = (u128::from(whole) * scale + u128::from(frac)) * u128::from(factor) / scale;
+            let exact = u128::from(whole) * u128::from(factor)
+                + u128::from(frac) * u128::from(factor) / scale;
             let expected = u64::try_from(exact).unwrap_or(u64::MAX);
 
             mul_decimal(&number, factor) == expected
