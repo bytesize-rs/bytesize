@@ -23,7 +23,7 @@ jobs:
         uses: actions-rust-lang/setup-rust-toolchain@ecabd13d1c56bd1345c230e542e9144811ad706f # v2.0.0
 
       - name: release-plz
-        uses: MarcoIeni/release-plz-action@b8d6b54b02889ff2ae2bb82e8b57c3a8fc1683a5 # v0.5.139
+        uses: MarcoIeni/release-plz-action@f67a7e724bdad4a0f6875f186060a0ca2770d76c # v0.5.147
         env:
           GITHUB_TOKEN: ${{ github.token }}
         id: release-plz
