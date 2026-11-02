@@ -1,5 +1,5 @@
 overrides:
-  - files: '*.md'
+  - files: "*.md"
     options:
       proseWrap: never
       printWidth: 9999

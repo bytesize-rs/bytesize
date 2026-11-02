@@ -3,9 +3,9 @@ name = "bytesize"
 description = "Semantic wrapper for byte count representations"
 version = "2.7.0"
 authors = [
-    "Hyunsik Choi <hyunsik.choi@gmail.com>",
-    "MrCroxx <mrcroxx@outlook.com>",
-    "Rob Ede <robjtede@icloud.com>",
+  "Hyunsik Choi <hyunsik.choi@gmail.com>",
+  "MrCroxx <mrcroxx@outlook.com>",
+  "Rob Ede <robjtede@icloud.com>",
 ]
 keywords = ["byte", "byte-size", "utility", "human-readable", "format"]
 categories = ["development-tools", "filesystem", "no-std"]
