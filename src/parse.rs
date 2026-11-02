@@ -1,36 +1,35 @@
-use alloc::{borrow::ToOwned as _, format, string::String};
-use core::{fmt, str};
+use core::{fmt, num::ParseFloatError, str};
 
 use super::ByteSize;
 
 impl str::FromStr for ByteSize {
-    type Err = String;
+    type Err = ByteSizeParseError;
 
-    fn from_str(value: &str) -> Result<Self, Self::Err> {
-        if let Ok(v) = value.parse::<u64>() {
+    fn from_str(input: &str) -> Result<Self, Self::Err> {
+        if let Ok(v) = input.parse::<u64>() {
             return Ok(Self(v));
         }
-        let number = take_while(value, |c| c.is_ascii_digit() || c == '.');
-        match number.parse::<f64>() {
-            Ok(v) => {
-                let suffix = skip_while(&value[number.len()..], char::is_whitespace);
-                match suffix.parse::<Unit>() {
-                    // Use exact integer arithmetic when the number has no
-                    // fractional part. `f64` only has a 53-bit mantissa, so byte
-                    // counts at or above 2^53 would otherwise be rounded (e.g.
-                    // "9007199254740993B" parsed to 9007199254740992).
-                    Ok(u) if !number.contains('.') => match number.parse::<u64>() {
-                        Ok(n) => Ok(Self(n.saturating_mul(u.factor()))),
-                        Err(_) => Ok(Self((v * u) as u64)),
-                    },
-                    Ok(u) => Ok(Self((v * u) as u64)),
-                    Err(error) => Err(format!(
-                        "couldn't parse {suffix:?} into a known SI unit, {error}"
-                    )),
-                }
+
+        let number = take_while(input, |c| c.is_ascii_digit() || c == '.');
+        let value = number
+            .parse::<f64>()
+            .map_err(ByteSizeParseError::invalid_number)?;
+        let suffix = skip_while(&input[number.len()..], char::is_whitespace);
+        let unit = suffix
+            .parse::<Unit>()
+            .map_err(ByteSizeParseError::invalid_unit)?;
+
+        // Use exact integer arithmetic when the number has no fractional part.
+        // `f64` only has a 53-bit mantissa, so byte counts at or above 2^53 would
+        // otherwise be rounded (e.g. "9007199254740993B" parsed to
+        // 9007199254740992).
+        if !number.contains('.') {
+            if let Ok(number) = number.parse::<u64>() {
+                return Ok(Self(number.saturating_mul(unit.factor())));
             }
-            Err(error) => Err(format!("couldn't parse {value:?} into a ByteSize, {error}")),
         }
+
+        Ok(Self((value * unit) as u64))
     }
 }
 
@@ -56,6 +55,54 @@ where
         .map(|ch| ch.len_utf8())
         .sum();
     &s[(s.len() - offset)..]
+}
+
+/// Error returned when parsing a [`ByteSize`] fails.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ByteSizeParseError {
+    kind: ByteSizeParseErrorKind,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+enum ByteSizeParseErrorKind {
+    InvalidNumber(ParseFloatError),
+    InvalidUnit(UnitParseError),
+}
+
+impl ByteSizeParseError {
+    fn invalid_number(error: ParseFloatError) -> Self {
+        Self {
+            kind: ByteSizeParseErrorKind::InvalidNumber(error),
+        }
+    }
+
+    fn invalid_unit(error: UnitParseError) -> Self {
+        Self {
+            kind: ByteSizeParseErrorKind::InvalidUnit(error),
+        }
+    }
+}
+
+impl fmt::Display for ByteSizeParseError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match &self.kind {
+            ByteSizeParseErrorKind::InvalidNumber(error) => {
+                write!(f, "invalid byte size number: {error}")
+            }
+            ByteSizeParseErrorKind::InvalidUnit(error) => {
+                write!(f, "invalid byte size unit: {error}")
+            }
+        }
+    }
+}
+
+impl core::error::Error for ByteSizeParseError {
+    fn source(&self) -> Option<&(dyn core::error::Error + 'static)> {
+        match &self.kind {
+            ByteSizeParseErrorKind::InvalidNumber(error) => Some(error),
+            ByteSizeParseErrorKind::InvalidUnit(error) => Some(error),
+        }
+    }
 }
 
 /// Scale unit.
@@ -248,46 +295,61 @@ impl str::FromStr for Unit {
             _ if unit.eq_ignore_ascii_case("ei") | unit.eq_ignore_ascii_case("eib") => {
                 Ok(Self::ExbiByte)
             }
-            _ => Err(UnitParseError(to_string_truncate(unit))),
+            _ => Err(UnitParseError::new(unit)),
         }
-    }
-}
-
-/// Safely truncates
-fn to_string_truncate(unit: &str) -> String {
-    const MAX_UNIT_LEN: usize = 3;
-
-    if unit.len() > MAX_UNIT_LEN {
-        // TODO(MSRV 1.91): use ceil_char_boundary
-
-        if unit.is_char_boundary(3) {
-            format!("{}...", &unit[..3])
-        } else if unit.is_char_boundary(4) {
-            format!("{}...", &unit[..4])
-        } else if unit.is_char_boundary(5) {
-            format!("{}...", &unit[..5])
-        } else if unit.is_char_boundary(6) {
-            format!("{}...", &unit[..6])
-        } else {
-            unreachable!("char boundary will be within 4 bytes")
-        }
-    } else {
-        unit.to_owned()
     }
 }
 
 /// Error returned when parsing a [`Unit`] fails.
-#[derive(Debug)]
-pub struct UnitParseError(String);
+#[derive(Clone, Copy, PartialEq, Eq)]
+pub struct UnitParseError {
+    bytes: [u8; 6],
+    len: u8,
+    truncated: bool,
+}
 
-impl fmt::Display for UnitParseError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "Failed to parse unit \"{}\"", self.0)
+impl UnitParseError {
+    fn new(unit: &str) -> Self {
+        let prefix_len = if unit.len() <= 3 {
+            unit.len()
+        } else {
+            (3..=unit.len().min(6))
+                .find(|index| unit.is_char_boundary(*index))
+                .expect("a UTF-8 boundary exists within six bytes")
+        };
+        let mut bytes = [0; 6];
+        bytes[..prefix_len].copy_from_slice(&unit.as_bytes()[..prefix_len]);
+
+        Self {
+            bytes,
+            len: prefix_len as u8,
+            truncated: prefix_len < unit.len(),
+        }
+    }
+
+    fn unit(&self) -> &str {
+        core::str::from_utf8(&self.bytes[..usize::from(self.len)])
+            .expect("unit prefix contains valid UTF-8")
     }
 }
 
-#[cfg(feature = "std")]
-impl std::error::Error for UnitParseError {}
+impl fmt::Debug for UnitParseError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("UnitParseError")
+            .field("unit", &self.unit())
+            .field("truncated", &self.truncated)
+            .finish()
+    }
+}
+
+impl fmt::Display for UnitParseError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let ellipsis = if self.truncated { "..." } else { "" };
+        write!(f, "invalid unit \"{}{ellipsis}\"", self.unit())
+    }
+}
+
+impl core::error::Error for UnitParseError {}
 
 #[cfg(test)]
 mod tests {
@@ -296,14 +358,23 @@ mod tests {
     use super::*;
 
     #[test]
-    fn truncating_error_strings() {
-        assert_eq!("", to_string_truncate(""));
-        assert_eq!("b", to_string_truncate("b"));
-        assert_eq!("ob", to_string_truncate("ob"));
-        assert_eq!("foo", to_string_truncate("foo"));
-
-        assert_eq!("foo...", to_string_truncate("foob"));
-        assert_eq!("foo...", to_string_truncate("foobar"));
+    fn unit_error_messages_are_bounded() {
+        assert_eq!(
+            "invalid unit \"\"",
+            "".parse::<Unit>().unwrap_err().to_string()
+        );
+        assert_eq!(
+            "invalid unit \"foo\"",
+            "foo".parse::<Unit>().unwrap_err().to_string()
+        );
+        assert_eq!(
+            "invalid unit \"foo...\"",
+            "foobar".parse::<Unit>().unwrap_err().to_string()
+        );
+        assert_eq!(
+            "invalid unit \"🦀\"",
+            "🦀".parse::<Unit>().unwrap_err().to_string()
+        );
     }
 
     #[test]
@@ -349,11 +420,18 @@ mod tests {
     #[test]
     fn when_err() {
         // shortcut for writing test cases
-        fn parse(s: &str) -> Result<ByteSize, String> {
+        fn parse(s: &str) -> Result<ByteSize, ByteSizeParseError> {
             s.parse::<ByteSize>()
         }
 
-        assert!(parse("").is_err());
+        assert_eq!(
+            "invalid byte size number: cannot parse float from empty string",
+            parse("").unwrap_err().to_string()
+        );
+        assert_eq!(
+            "invalid byte size unit: invalid unit \"GBX\"",
+            parse("124GBX").unwrap_err().to_string()
+        );
         assert!(parse("a124GB").is_err());
         assert!(parse("1.3 42.0 B").is_err());
         assert!(parse("1.3 ... B").is_err());

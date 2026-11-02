@@ -11,4 +11,4 @@ panic = "abort"
 panic = "abort"
 
 [dependencies]
-bytesize = { path = "..", default-features = false }
+bytesize = { path = "..", default-features = false, features = ["alloc"] }
