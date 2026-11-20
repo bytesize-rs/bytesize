@@ -9,6 +9,15 @@
 //!   and "521TiB".
 //! - Serde support for binary and human-readable deserializers like JSON.
 //!
+//! # Feature flags
+//!
+//! - `std` (default): Enables the `alloc` feature and standard library optimizations.
+//! - `alloc`: Enables allocator-backed integrations.
+//! - `arbitrary`: Implements `arbitrary::Arbitrary` for [`ByteSize`].
+//! - `serde`: Enables `alloc` and implements serialization and deserialization for [`ByteSize`].
+//!
+//! Parsing and formatting are available without default features and do not allocate.
+//!
 //! # Examples
 //!
 //! Construction using SI or IEC helpers.
@@ -45,9 +54,9 @@
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
+#[cfg(any(feature = "serde", test))]
 extern crate alloc;
 
-use alloc::string::ToString as _;
 use core::{fmt, iter, ops};
 
 #[cfg(feature = "arbitrary")]
@@ -59,7 +68,7 @@ mod serde;
 
 pub use self::display::Display;
 use self::display::Format;
-pub use self::parse::{Unit, UnitParseError};
+pub use self::parse::{ByteSizeParseError, Unit, UnitParseError};
 
 /// Number of bytes in 1 kilobyte.
 pub const KB: u64 = 1_000;
@@ -338,25 +347,16 @@ impl fmt::Display for ByteSize {
         let display = self.display();
 
         if f.width().is_none() {
-            // allocation-free fast path for when no formatting options are specified
             fmt::Display::fmt(&display, f)
         } else {
-            // `display.to_string()` renders at the default precision, and `f.pad`
-            // reinterprets the formatter's precision as a *maximum* width. Together
-            // they drop the requested precision and truncate the value mid-unit
-            // (e.g. `{:>12.5}` rendered "1.86328 GiB" as "1.9 G"). Render with the
-            // requested precision first, then apply only the width, fill, and align.
-            let content = match f.precision() {
-                Some(precision) => alloc::format!("{display:.precision$}"),
-                None => display.to_string(),
-            };
-
-            let padding = f
-                .width()
-                .unwrap_or(0)
-                .saturating_sub(content.chars().count());
+            let mut counter = CharCounter::default();
+            match f.precision() {
+                Some(precision) => fmt::write(&mut counter, format_args!("{display:.precision$}"))?,
+                None => fmt::write(&mut counter, format_args!("{display}"))?,
+            }
+            let padding = f.width().unwrap_or(0).saturating_sub(counter.count);
             if padding == 0 {
-                return f.write_str(&content);
+                return fmt::Display::fmt(&display, f);
             }
 
             let (left, right) = match f.align() {
@@ -370,12 +370,24 @@ impl fmt::Display for ByteSize {
             for _ in 0..left {
                 f.write_str(fill)?;
             }
-            f.write_str(&content)?;
+            fmt::Display::fmt(&display, f)?;
             for _ in 0..right {
                 f.write_str(fill)?;
             }
             Ok(())
         }
+    }
+}
+
+#[derive(Default)]
+struct CharCounter {
+    count: usize,
+}
+
+impl fmt::Write for CharCounter {
+    fn write_str(&mut self, value: &str) -> fmt::Result {
+        self.count = self.count.saturating_add(value.chars().count());
+        Ok(())
     }
 }
 
@@ -608,7 +620,10 @@ mod core_tests {
 
 #[cfg(test)]
 mod alloc_tests {
-    use alloc::{format, string::String};
+    use alloc::{
+        format,
+        string::{String, ToString as _},
+    };
 
     use super::*;
 
