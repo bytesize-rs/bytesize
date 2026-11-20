@@ -186,22 +186,40 @@ impl fmt::Display for Display {
             let size = bytes as f64 * if is_bits { BITS_PER_BYTE as f64 } else { 1.0 };
 
             #[cfg(feature = "std")]
-            let exp = ideal_unit_std(size, unit, unit_base);
+            let mut exp = ideal_unit_std(size, unit, unit_base);
 
             #[cfg(not(feature = "std"))]
-            let exp = ideal_unit_no_std(size, unit);
+            let mut exp = ideal_unit_no_std(size, unit);
+
+            let mut value = size / unit.pow(exp as u32) as f64;
+
+            // Rounding to `precision` digits can carry the value up to a whole `unit` (e.g.,
+            // 1,048,575 B is 1023.999 KiB, which would print as "1024.0 KiB"), so show it in the
+            // next unit instead ("1.0 MiB").
+            if exp < unit_prefixes.len() && rounds_up_to_unit(value, unit, precision) {
+                exp += 1;
+                value = size / unit.pow(exp as u32) as f64;
+            }
 
             let unit_prefix = unit_prefixes[exp - 1] as char;
 
             write!(
                 f,
-                "{:.precision$}{unit_separator}{unit_prefix}{unit_suffix}",
-                (size / unit.pow(exp as u32) as f64),
+                "{value:.precision$}{unit_separator}{unit_prefix}{unit_suffix}",
             )?;
         }
 
         Ok(())
     }
+}
+
+/// Returns true if `value` (which is below `unit`) is shown as `unit` or more when rounded to
+/// `precision` decimal places.
+fn rounds_up_to_unit(value: f64, unit: u64, precision: usize) -> bool {
+    let precision = i32::try_from(precision).unwrap_or(i32::MAX);
+    let half_last_digit = 0.5 * 10_f64.powi(precision.saturating_neg());
+
+    value >= unit as f64 - half_last_digit
 }
 
 #[allow(dead_code)] // used in no-std contexts
@@ -342,7 +360,7 @@ mod tests {
     #[test]
     fn display_matches_just_below_pebi_boundary() {
         assert_eq!(
-            "1024.0 TiB",
+            "1.0 PiB",
             Display {
                 byte_size: ByteSize(1_125_899_906_842_623),
                 format: Format::Iec,
@@ -492,6 +510,35 @@ mod tests {
                 },
             ),
         );
+    }
+
+    #[test]
+    fn rounding_carries_into_next_unit() {
+        assert_to_string("1023.9 KiB", ByteSize(1_048_524), Format::Iec);
+        assert_to_string("1.0 MiB", ByteSize(1_048_525), Format::Iec);
+        assert_to_string("1.0 MiB", ByteSize(1_048_575), Format::Iec);
+        assert_to_string("1.0 GiB", ByteSize::gib(1) - ByteSize(1), Format::Iec);
+        assert_to_string("1.0M", ByteSize(1_048_575), Format::IecShort);
+
+        assert_to_string("999.9 kB", ByteSize(999_949), Format::Si);
+        assert_to_string("1.0 MB", ByteSize(999_950), Format::Si);
+        assert_to_string("1.0 GB", ByteSize::gb(1) - ByteSize(1), Format::Si);
+        assert_to_string("1.0M", ByteSize(999_999), Format::SiShort);
+
+        assert_to_string("1.0 Mib", ByteSize(131_071), Format::IecBits);
+        assert_to_string("1.0 Mb", ByteSize(124_999), Format::SiBits);
+    }
+
+    #[test]
+    fn rounding_carry_honors_precision() {
+        let size = ByteSize(1_048_575); // 1023.999 KiB
+        assert_eq!("1 MiB", format!("{size:.0}"));
+        assert_eq!("1.00 MiB", format!("{size:.2}"));
+        assert_eq!("1023.999 KiB", format!("{size:.3}"));
+
+        // 1023.5 KiB rounds to 1024 at zero decimal places
+        assert_eq!("1 MiB", format!("{:.0}", ByteSize(1_048_064)));
+        assert_eq!("1023 KiB", format!("{:.0}", ByteSize(1_048_063)));
     }
 
     #[test]

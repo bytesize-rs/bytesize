@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Fix display showing a full unit when the value rounds up, e.g., `1024.0 KiB` is now `1.0 MiB`.
+
 ## 2.7.0
 
 - Remove no-alloc support because it removed `ByteSize::display()` when default features were disabled.
