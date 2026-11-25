@@ -31,7 +31,7 @@ arbitrary = { version = "1", optional = true }
 serde_core = { version = "1", optional = true }
 
 [dev-dependencies]
-divan = "0.1"
+divan = { package = "codspeed-divan-compat", version = "4" }
 indicatif = { version = "0.18", default-features = false }
 quickcheck = "1"
 serde = { version = "1", features = ["derive"] }
@@ -40,6 +40,10 @@ toml = "1.1"
 
 [[bench]]
 name = "display"
+harness = false
+
+[[bench]]
+name = "parse"
 harness = false
 
 [lints.rust]

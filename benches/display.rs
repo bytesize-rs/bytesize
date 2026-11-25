@@ -1,6 +1,6 @@
 #![allow(missing_docs)]
 
-use std::{env, fmt, hint::black_box};
+use std::{fmt, hint::black_box};
 
 struct ByteSizeAlwaysPad(bytesize::ByteSize);
 
@@ -10,7 +10,7 @@ impl fmt::Display for ByteSizeAlwaysPad {
     }
 }
 
-#[divan::bench]
+#[divan::bench(sample_size = 32)]
 fn display_inner_display() {
     black_box(format!(
         "{}",
@@ -18,20 +18,17 @@ fn display_inner_display() {
     ));
 }
 
-#[divan::bench]
+#[divan::bench(sample_size = 32)]
 fn display_bytesize_standard() {
-    black_box(format!(
-        "{}",
-        black_box(bytesize::ByteSize::kib(42).display()),
-    ));
+    black_box(format!("{}", black_box(bytesize::ByteSize::kib(42))));
 }
 
-#[divan::bench]
+#[divan::bench(sample_size = 16)]
 fn display_bytesize_custom() {
     black_box(format!("|{:-^10}|", black_box(bytesize::ByteSize::kib(42))));
 }
 
-#[divan::bench]
+#[divan::bench(sample_size = 16)]
 fn display_always_pad_standard() {
     black_box(format!(
         "{}",
@@ -39,7 +36,7 @@ fn display_always_pad_standard() {
     ));
 }
 
-#[divan::bench]
+#[divan::bench(sample_size = 16)]
 fn display_always_pad_custom() {
     black_box(format!(
         "|{:-^10}|",
@@ -48,6 +45,5 @@ fn display_always_pad_custom() {
 }
 
 fn main() {
-    env::set_var("DIVAN_SAMPLE_COUNT", "1000");
     divan::main();
 }
