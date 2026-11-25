@@ -11,37 +11,45 @@ impl fmt::Display for ByteSizeAlwaysPad {
 }
 
 #[divan::bench(sample_size = 32)]
-fn display_inner_display() {
-    black_box(format!(
-        "{}",
-        black_box(bytesize::ByteSize::kib(42).display()),
-    ));
+fn display_inner_display() -> String {
+    black_box(bytesize::ByteSize::kib(42).display()).to_string()
 }
 
 #[divan::bench(sample_size = 32)]
-fn display_bytesize_standard() {
-    black_box(format!("{}", black_box(bytesize::ByteSize::kib(42))));
+fn display_bytesize_standard() -> String {
+    black_box(bytesize::ByteSize::kib(42)).to_string()
 }
 
 #[divan::bench(sample_size = 16)]
-fn display_bytesize_custom() {
-    black_box(format!("|{:-^10}|", black_box(bytesize::ByteSize::kib(42))));
+fn display_bytesize_custom() -> String {
+    format!("|{:-^10}|", black_box(bytesize::ByteSize::kib(42)))
 }
 
 #[divan::bench(sample_size = 16)]
-fn display_always_pad_standard() {
-    black_box(format!(
-        "{}",
-        black_box(ByteSizeAlwaysPad(bytesize::ByteSize::kib(42))),
-    ));
+fn display_always_pad_standard() -> String {
+    black_box(ByteSizeAlwaysPad(bytesize::ByteSize::kib(42))).to_string()
 }
 
 #[divan::bench(sample_size = 16)]
-fn display_always_pad_custom() {
-    black_box(format!(
+fn display_always_pad_custom() -> String {
+    format!(
         "|{:-^10}|",
         black_box(ByteSizeAlwaysPad(bytesize::ByteSize::kib(42))),
-    ));
+    )
+}
+
+#[cfg(feature = "serde")]
+#[divan::bench(sample_size = 32)]
+fn serialize_json() -> String {
+    serde_json::to_string(black_box(&bytesize::ByteSize::kib(42))).unwrap()
+}
+
+#[cfg(feature = "serde")]
+#[divan::bench(sample_size = 32)]
+fn serialize_cbor() -> Vec<u8> {
+    let mut output = Vec::new();
+    ciborium::into_writer(black_box(&bytesize::ByteSize::kib(42)), &mut output).unwrap();
+    output
 }
 
 fn main() {
