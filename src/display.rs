@@ -216,10 +216,19 @@ impl fmt::Display for Display {
 /// Returns true if `value` (which is below `unit`) is shown as `unit` or more when rounded to
 /// `precision` decimal places.
 fn rounds_up_to_unit(value: f64, unit: u64, precision: usize) -> bool {
-    let precision = i32::try_from(precision).unwrap_or(i32::MAX);
-    let half_last_digit = 0.5 * 10_f64.powi(precision.saturating_neg());
+    let unit = unit as f64;
+    let mut half_last_digit = 0.5;
 
-    value >= unit as f64 - half_last_digit
+    for _ in 0..precision {
+        half_last_digit /= 10.0;
+
+        // Stop when more decimal places cannot change the threshold.
+        if unit - half_last_digit == unit {
+            break;
+        }
+    }
+
+    value >= unit - half_last_digit
 }
 
 #[allow(dead_code)] // used in no-std contexts
