@@ -3,6 +3,7 @@
 ## Unreleased
 
 - Fix display showing a full unit when the value rounds up, e.g., `1024.0 KiB` is now `1.0 MiB`.
+- Fix parsing of decimal byte count strings losing a byte to floating-point rounding (e.g., `"2.01 KB"` parsed as 2009 bytes).
 
 ## 2.7.0
 
