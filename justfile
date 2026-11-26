@@ -12,18 +12,25 @@ msrv_rustup := "+" + msrv
 # Check project.
 [group("lint")]
 check: && clippy
-    just --unstable --fmt --check
+    just --fmt --check
     # fd --hidden -e=toml --exec-batch taplo format --check
     # fd --hidden -e=toml --exec-batch taplo lint
     # fd --hidden --type=file -e=md -e=yml --exec-batch prettier --check
     cargo +nightly fmt -- --check
 
+# Check formatting in CI.
+[group("lint")]
+check-ci:
+    just --fmt --check
+    fd --hidden -e=toml --exec-batch taplo format --check
+    cargo +nightly fmt -- --check
+
 # Format project.
 [group("lint")]
 fmt:
-    just --unstable --fmt
-    # fd --hidden -e=toml --exec-batch taplo format
-    # fd --hidden --type=file -e=md -e=yml --exec-batch prettier --write
+    just --fmt
+    -fd --hidden -e=toml --exec-batch taplo format
+    -fd --hidden --type=file -e=md -e=yml --exec-batch prettier --write
     cargo +nightly fmt
 
 # Update READMEs from crate root documentation.
